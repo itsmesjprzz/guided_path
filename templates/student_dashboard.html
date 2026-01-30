@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Dashboard | Entrance Exam System</title>
+
+  <!-- Bootstrap & Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    /* --- Navbar --- */
+    .navbar-custom {
+      background-color: #ff0000 !important;
+      color: white;
+    }
+    .navbar-custom .nav-link, 
+    .navbar-custom .navbar-brand,
+    .navbar-custom .dropdown-toggle {
+      color: white !important;
+    }
+
+    /* --- Dashboard Exam Cards --- */
+    .exam-container {
+      min-height: calc(100vh - 80px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+    .exam-card {
+      background: white;
+      border-radius: 20px;
+      padding: 50px 40px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+      text-align: center;
+      transition: transform 0.3s, box-shadow 0.3s;
+      max-width: 400px;
+      width: 100%;
+    }
+    .exam-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 50px rgba(0,0,0,0.15);
+    }
+    .exam-card h3 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: #333;
+    }
+    .exam-card p {
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 16px;
+    }
+    .exam-card .btn-exam {
+      background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+      color: white;
+      border: none;
+      padding: 15px 50px;
+      font-size: 18px;
+      font-weight: 600;
+      border-radius: 50px;
+      transition: all 0.3s;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .exam-card .btn-exam:hover:not(:disabled) {
+      transform: scale(1.05);
+      box-shadow: 0 5px 20px rgba(255,0,0,0.4);
+    }
+    .exam-card .btn-exam:disabled {
+      background: linear-gradient(135deg, #cccccc 0%, #999999 100%);
+      cursor: not-allowed;
+      transform: none;
+    }
+    .exam-card .exam-icon {
+      font-size: 64px;
+      color: #ff0000;
+      margin-bottom: 20px;
+    }
+    .exam-card .completed-badge {
+      background: #28a745;
+      color: white;
+      padding: 8px 20px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      display: inline-block;
+      margin-bottom: 15px;
+    }
+    .exam-card .score-display {
+      font-size: 20px;
+      color: #ff0000;
+      font-weight: 700;
+      margin-top: 10px;
+    }
+
+    .btn-exam:disabled {
+    background: linear-gradient(135deg, #cccccc 0%, #999999 100%);
+    cursor: not-allowed;
+    transform: none;
+    }
+
+  </style>
+</head>
+
+<body class="bg-light">
+  
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-light navbar-custom">
+    <div class="container-fluid">
+      <a class="navbar-brand ms-2" href="#">
+        Online Entrance Exam System
+      </a>
+
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <div class="dropdown me-2">
+              <button class="btn dropdown-toggle bg-transparent border-0 text-white" data-bs-toggle="dropdown">
+                Welcome, {{ student.name }}!
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="/student/logout">Logout</a></li>
+              </ul>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Exam Cards -->
+  <div class="exam-container">
+    <div class="container">
+      <h2 class="text-center mb-5 fw-bold" style="color: #333;">Select Your Exam</h2>
+      
+      <div class="row g-5 justify-content-center">
+        <!-- Main Exam Card -->
+        <div class="col-md-6 col-lg-5">
+          <div class="exam-card" id="mainExamCard">
+            <i class="fas fa-book-open exam-icon"></i>
+            <div id="mainExamStatus"></div>
+            <h3>Main Exam</h3>
+            <p>Comprehensive examination covering all core subjects and topics</p>
+            <button class="btn btn-exam" id="mainExamBtn">
+               Take the Exam
+            </button>
+          </div>
+        </div>
+
+        <!-- Aptitude Exam Card -->
+        <div class="col-md-6 col-lg-5">
+          <div class="exam-card" id="aptitudeExamCard">
+            <i class="fas fa-brain exam-icon"></i>
+            <div id="aptitudeExamStatus"></div>
+            <h3>Aptitude Exam</h3>
+            <p>Assessment of logical reasoning, analytical and problem-solving skills</p>
+            <button class="btn btn-exam" id="aptitudeExamBtn" onclick="startExam('aptitude')">
+              Take the Exam
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+document.addEventListener('DOMContentLoaded', function() {
+    const enrolleeId = {{ session['student_id'] | tojson }};
+    const studentStatus = "{{ student.status }}";  // from Flask session
+
+    const mainExamBtn = document.getElementById('mainExamBtn');
+    const aptitudeExamBtn = document.getElementById('aptitudeExamBtn');
+
+    const notStartedCard = document.getElementById('notStartedCount');
+    const inProgressCard = document.getElementById('inProgressCount');
+    const completedCard = document.getElementById('completedCount');
+
+    // Disable Main Exam and grey out
+    function disableMainExamBtn() {
+        mainExamBtn.disabled = true;
+        mainExamBtn.textContent = 'Already Taken';
+        mainExamBtn.classList.add('btn-exam-disabled'); // optional, for extra CSS if needed
+    }
+
+    if (studentStatus === 'completed') {
+        disableMainExamBtn();
+    }
+
+    // Main Exam click
+    mainExamBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        if (mainExamBtn.disabled) return;
+
+        fetch(`/api/enrollee/start_exam/${enrolleeId}`, { method: 'POST' })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    disableMainExamBtn();
+
+                    if (notStartedCard && inProgressCard) {
+                        notStartedCard.textContent = parseInt(notStartedCard.textContent) - 1;
+                        inProgressCard.textContent = parseInt(inProgressCard.textContent) + 1;
+                    }
+
+                    window.location.href = "{{ url_for('student_exam') }}";
+                } else {
+                    alert(data.error || 'Failed to start the exam.');
+                }
+            })
+            .catch(err => {
+                console.error('Error starting the exam:', err);
+                alert('Error starting the exam. Please try again.');
+            });
+    });
+
+    // Aptitude Exam click
+    aptitudeExamBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        startExam('aptitude');
+    });
+});
+</script>
+
+
+
+</body>
+</html>

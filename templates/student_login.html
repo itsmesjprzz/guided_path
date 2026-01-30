@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Login | Entrance Exam System</title>
+
+  <!-- Bootstrap & Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    .login-container {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #fff5f5 0%, #ffe8e8 50%, #ffffff 100%);
+      padding: 20px;
+    }
+    .login-card {
+      background: white;
+      border-radius: 15px;
+      padding: 40px;
+      box-shadow: 0 10px 40px rgba(220, 38, 38, 0.15);
+      border: 1px solid #fee2e2;
+      max-width: 500px;
+      width: 100%;
+    }
+    .login-card h2 {
+      color: #dc2626;
+      margin-bottom: 30px;
+      font-weight: 700;
+    }
+    .nav-tabs {
+      border-bottom: 2px solid #fee2e2;
+      margin-bottom: 25px;
+    }
+    .nav-tabs .nav-link {
+      color: #6c757d;
+      border: none;
+      padding: 12px 20px;
+      font-weight: 600;
+      border-bottom: 3px solid transparent;
+    }
+    .nav-tabs .nav-link:hover {
+      border-color: transparent;
+      color: #dc2626;
+    }
+    .nav-tabs .nav-link.active {
+      color: #dc2626;
+      background-color: transparent;
+      border-bottom: 3px solid #dc2626;
+    }
+    .btn-primary {
+      background: #dc2626;
+      border: none;
+      padding: 12px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .btn-primary:hover {
+      background: #b91c1c;
+    }
+    .btn-primary:disabled {
+      background: #cccccc;
+      cursor: not-allowed;
+    }
+    .form-label {
+      font-weight: 500;
+      color: #495057;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="login-container">
+    <div class="login-card">
+      <div class="text-center mb-4">
+        <i class="fas fa-graduation-cap" style="font-size: 60px; color: #dc2626;"></i>
+      </div>
+      <h2 class="text-center">Student Portal</h2>
+      
+      <!-- Tabs -->
+      <ul class="nav nav-tabs" id="loginTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="reference-tab" data-bs-toggle="tab" 
+                  data-bs-target="#reference" type="button" role="tab">
+            <i class="fas fa-key me-2"></i>Reference Code
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="register-tab" data-bs-toggle="tab" 
+                  data-bs-target="#register" type="button" role="tab">
+            <i class="fas fa-user-plus me-2"></i>Register
+          </button>
+        </li>
+      </ul>
+
+      <!-- Tab Content -->
+      <div class="tab-content" id="loginTabContent">
+        <!-- Reference Code Login Tab -->
+        <div class="tab-pane fade show active" id="reference" role="tabpanel">
+          <p class="text-muted mb-4">Enter your reference code to access the exam</p>
+          
+          <form id="loginForm">
+            <div class="mb-3">
+              <label for="referenceCode" class="form-label">Reference Code</label>
+              <input type="text" class="form-control form-control-lg" id="referenceCode" 
+                     placeholder="Enter your reference code" required>
+            </div>
+            
+            <div class="d-grid">
+              <button type="submit" class="btn btn-primary btn-lg" id="loginBtn">
+                <i class="fas fa-sign-in-alt me-2"></i>Login
+              </button>
+            </div>
+          </form>
+          
+          <div id="loginMessageBox" class="alert mt-3 d-none" role="alert"></div>
+        </div>
+
+        <!-- Self-Registration Tab -->
+        <div class="tab-pane fade" id="register" role="tabpanel">
+          <p class="text-muted mb-4">Create your account to take the entrance exam</p>
+          
+          <form id="registerForm">
+            <div class="mb-3">
+              <label for="fullName" class="form-label">Full Name</label>
+              <input type="text" class="form-control" id="fullName" 
+                     placeholder="Enter your full name" required>
+            </div>
+
+            <div class="mb-3">
+              <label for="email" class="form-label">Email Address</label>
+              <input type="email" class="form-control" id="email" 
+                     placeholder="Enter your email" required>
+            </div>
+
+            <div class="mb-3">
+              <label for="contactNumber" class="form-label">Contact Number</label>
+              <input type="tel" class="form-control" id="contactNumber" 
+                     placeholder="Enter your contact number" required>
+            </div>
+
+            <div class="mb-3">
+              <label for="schoolStrand" class="form-label">School/Strand (if applicable)</label>
+              <input type="text" class="form-control" id="schoolStrand" 
+                     placeholder="Enter your school or strand">
+            </div>
+            
+            <div class="d-grid">
+              <button type="submit" class="btn btn-primary btn-lg" id="registerBtn">
+                <i class="fas fa-user-plus me-2"></i>Register
+              </button>
+            </div>
+          </form>
+          
+          <div id="registerMessageBox" class="alert mt-3 d-none" role="alert"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    // Reference Code Login
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const referenceCode = document.getElementById('referenceCode').value.trim();
+      const loginBtn = document.getElementById('loginBtn');
+      const messageBox = document.getElementById('loginMessageBox');
+      
+      // Disable button and show loading
+      loginBtn.disabled = true;
+      loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Logging in...';
+      
+      // Hide previous messages
+      messageBox.classList.add('d-none');
+      
+      // Send login request
+      fetch('/student/authenticate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ reference_code: referenceCode })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // Show success message
+          messageBox.classList.remove('d-none', 'alert-danger');
+          messageBox.classList.add('alert-success');
+          messageBox.textContent = data.message + '. Redirecting...';
+          
+          // Redirect to dashboard
+          setTimeout(() => {
+            window.location.href = '/student/dashboard';
+          }, 1000);
+        } else {
+          // Show error message
+          messageBox.classList.remove('d-none', 'alert-success');
+          messageBox.classList.add('alert-danger');
+          messageBox.textContent = data.message;
+          
+          // Re-enable button
+          loginBtn.disabled = false;
+          loginBtn.innerHTML = '<i class="fas fa-sign-in-alt me-2"></i>Login';
+        }
+      })
+      .catch(error => {
+        console.error('Login error:', error);
+        messageBox.classList.remove('d-none', 'alert-success');
+        messageBox.classList.add('alert-danger');
+        messageBox.textContent = 'An error occurred. Please try again.';
+        
+        // Re-enable button
+        loginBtn.disabled = false;
+        loginBtn.innerHTML = '<i class="fas fa-sign-in-alt me-2"></i>Login';
+      });
+    });
+
+    // Self-Registration
+    document.getElementById('registerForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const fullName = document.getElementById('fullName').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const contactNumber = document.getElementById('contactNumber').value.trim();
+      const schoolStrand = document.getElementById('schoolStrand').value.trim();
+      const registerBtn = document.getElementById('registerBtn');
+      const messageBox = document.getElementById('registerMessageBox');
+      
+      // Disable button and show loading
+      registerBtn.disabled = true;
+      registerBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Registering...';
+      
+      // Hide previous messages
+      messageBox.classList.add('d-none');
+      
+      // Send registration request
+      fetch('/student/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          full_name: fullName,
+          email: email,
+          contact_number: contactNumber,
+          school_strand: schoolStrand || null
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // Show success message
+          messageBox.classList.remove('d-none', 'alert-danger');
+          messageBox.classList.add('alert-success');
+          messageBox.innerHTML = data.message;
+          
+          // Clear form
+          document.getElementById('registerForm').reset();
+          
+          // Re-enable button
+          registerBtn.disabled = false;
+          registerBtn.innerHTML = '<i class="fas fa-user-plus me-2"></i>Register';
+        } else {
+          // Show error message
+          messageBox.classList.remove('d-none', 'alert-success');
+          messageBox.classList.add('alert-danger');
+          messageBox.textContent = data.message;
+          
+          // Re-enable button
+          registerBtn.disabled = false;
+          registerBtn.innerHTML = '<i class="fas fa-user-plus me-2"></i>Register';
+        }
+      })
+      .catch(error => {
+        console.error('Registration error:', error);
+        messageBox.classList.remove('d-none', 'alert-success');
+        messageBox.classList.add('alert-danger');
+        messageBox.textContent = 'An error occurred. Please try again.';
+        
+        // Re-enable button
+        registerBtn.disabled = false;
+        registerBtn.innerHTML = '<i class="fas fa-user-plus me-2"></i>Register';
+      });
+    });
+  </script>
+</body>
+</html>

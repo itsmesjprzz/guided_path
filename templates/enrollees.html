@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enrollees Management | Entrance Exam System</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    body { background-color: #f8f9fa; }
+    .navbar-custom { background-color: #ff0000 !important; gap: 10px; }
+    .navbar-custom .nav-link, .navbar-custom .navbar-brand { color: #fff !important; }
+    .status-badge { padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 500; }
+    .status-not-started { background-color: #e5e7eb; color: #374151; }
+    .status-in-progress { background-color: #fef3c7; color: #92400e; }
+    .status-completed { background-color: #d1fae5; color: #065f46; }
+    .score-badge { font-weight: bold; padding: 4px 8px; border-radius: 4px; }
+    .score-excellent { background-color: #d1fae5; color: #065f46; }
+    .score-good { background-color: #bfdbfe; color: #1e40af; }
+    .score-average { background-color: #fef3c7; color: #92400e; }
+    .score-poor { background-color: #fee2e2; color: #991b1b; }
+    .btn-primary { background-color: #ff0000 !important; border-color: #ff0000 !important; color: #fff !important; }
+    .btn-primary:hover { background-color: #cc0000 !important; border-color: #cc0000 !important; }
+    .btn-outline-primary { color: #ff0000 !important; border-color: #ff0000 !important; }
+    .btn-outline-primary:hover { background-color: #ff0000 !important; color: #fff !important; }
+</style>
+</head>
+<body>
+<main>
+<nav class="navbar navbar-expand-lg navbar-light navbar-custom">
+  <div class="container-fluid">
+    <a class="navbar-brand ms-2" href="{{ url_for('dashboard') }}">
+      Online Entrance Exam System
+    </a>
+
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav d-flex flex-row gap-5 mx-auto"> <!-- Increased gap from 4 → 5 -->
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard') }}"><i class="fa fa-home"></i> Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_enrollees') }}"><i class="fa fa-user-tie"></i> Enrollees</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_exam_set') }}"><i class="fa fa-th-list"></i> Exam Set</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('results') }}"><i class="fa fa-chart-bar"></i> Results</a></li>
+      </ul>
+
+      <div class="dropdown me-2">
+        <button class="btn dropdown-toggle bg-transparent border-0 text-white" data-bs-toggle="dropdown">
+          Hello, {{ session['fullname'] }}
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><a class="dropdown-item" href="/logout">Logout</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2>Enrollees Management</h2>
+            <p class="text-muted mb-0">Manage all enrolled examinees</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addEnrolleeModal"><i class="fas fa-plus"></i> Add Enrollee</button>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#importEnrolleesModal"><i class="fas fa-file-upload"></i> Import Enrollees</button>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4 text-center">
+        <div class="col-md-4"><div class="card shadow-sm"><div class="card-body"><h6 class="text-muted">Not Started</h6><h3 id="notStartedCount">0</h3></div></div></div>
+        <div class="col-md-4"><div class="card shadow-sm"><div class="card-body"><h6 class="text-muted">In Progress</h6><h3 id="inProgressCount">0</h3></div></div></div>
+        <div class="col-md-4"><div class="card shadow-sm"><div class="card-body"><h6 class="text-muted">Completed</h6><h3 id="completedCount">0</h3></div></div></div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label mb-1">Search</label>
+                    <div class="input-group"><span class="input-group-text"><i class="fas fa-search"></i></span>
+                        <input type="text" class="form-control" id="searchInput" placeholder="Name, email, or reference code...">
+                    </div>
+                </div>
+                <div class="col-md-5">
+                <label class="form-label mb-1 d-block">Filter & Sort</label>
+                <div class="d-flex gap-2">
+                    <!-- Filter Buttons -->
+                    <div class="filter-buttons btn-group" role="group">
+                        <button class="btn btn-outline-secondary btn-sm active" onclick="setFilter('all', this)">All</button>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="setFilter('not_started', this)">Not Started</button>
+                        <button class="btn btn-outline-info btn-sm" onclick="setFilter('in_progress', this)">In progress</button>
+                        <button class="btn btn-outline-success btn-sm" onclick="setFilter('completed', this)">Completed</button>
+                    </div>
+                    <!-- Sort Dropdown -->
+                    <select class="form-select form-select-sm" id="sortBy" style="width: auto;">
+                        <option value="name">Name</option>
+                        <option value="date">Exam Date</option>
+                        <option value="score">Score</option>
+                        <option value="status">Status</option>
+                    </select>
+                </div>
+            </div>
+                <div class="col-md-2"><button class="btn btn-outline-secondary w-100" onclick="exportToCSV()"><i class="fas fa-download"></i> Export CSV</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <label><input type="checkbox" id="selectAll"> Select All</label>
+                <button class="btn btn-sm btn-outline-primary" onclick="printSummary()"><i class="fas fa-print"></i> Print Summary</button>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th><input type="checkbox" id="selectAllHeader"></th>
+                            <th>Name</th><th>Email</th><th>Reference Code</th><th>Status</th><th>Date of Registration</th><th>Exam Date</th><th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="enrolleesTableBody"><tr><td colspan="8" class="text-center py-4"><div class="spinner-border text-primary"></div></td></tr></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modals (Add/Edit/View/Import) -->
+<!-- Add Enrollee Modal -->
+<div class="modal fade" id="addEnrolleeModal"><div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5>Add New Enrollee</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <form id="addEnrolleeForm">
+        <div class="modal-body">
+            <div class="mb-3"><label class="form-label">Full Name *</label><input type="text" class="form-control" name="name" required></div>
+            <div class="mb-3"><label class="form-label">Email Address *</label><input type="email" class="form-control" name="email" required></div>
+            <div class="mb-3"><label class="form-label">Contact Number *</label><input type="text" class="form-control" name="contact_number" required>
+</div>
+            <input type="hidden" name="reference_code"><input type="hidden" name="status" value="not_started">
+        </div>
+        <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary">Add Enrollee</button></div>
+    </form>
+</div></div></div>
+
+<div class="modal fade" id="editEnrolleeModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="editEnrolleeForm">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit Enrollee</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body">
+          <input type="hidden" name="id">
+          <div class="mb-3">
+            <label class="form-label">Full Name *</label>
+            <input type="text" class="form-control" name="name" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Email Address *</label>
+            <input type="email" class="form-control" name="email" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Status</label>
+            <select name="status" class="form-select">
+              <option value="not_started">Not Started</option>
+              <option value="in_progress">In Progress</option>
+              <option value="completed">Completed</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Date of Registration</label>
+            <input type="date" class="form-control" name="registration_date">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Exam Date (optional)</label>
+            <input type="date" class="form-control" name="exam_date">
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Import Enrollee -->
+ <div class="modal fade" id="importEnrolleesModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">Import Enrollees</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <!-- form wrapper -->
+        <form id="importForm">
+          <input type="file" name="file" class="form-control" accept=".csv, .xlsx, .xls" required>
+        </form>
+
+        <small class="text-muted mt-1 d-block">
+          Required headers: <strong>name,email</strong>
+        </small>
+
+        <!-- message box -->
+        <div id="importMessage" class="mt-2"></div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="importBtn">Import</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+let enrolleesData = [];
+let selectedIds = new Set();
+let currentFilter = 'all';
+
+document.getElementById('importBtn').addEventListener('click', function() {
+    const importForm = document.getElementById('importForm');
+    const fileInput = importForm.querySelector('input[name="file"]');
+    const messageBox = document.getElementById('importMessage');
+
+    if (!fileInput.files.length) {
+        messageBox.textContent = 'Please select a file to import.';
+        messageBox.className = 'text-danger';
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+
+    const btn = this;
+    btn.disabled = true;
+    btn.textContent = 'Importing...';
+
+    fetch('/admin/enrollees/import', {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        messageBox.textContent = data.message;
+        messageBox.className = data.success ? 'text-success' : 'text-danger';
+        btn.disabled = false;
+        btn.textContent = 'Import';
+    })
+    .catch(err => {
+        console.error(err);
+        messageBox.textContent = 'Error importing file.';
+        messageBox.className = 'text-danger';
+        btn.disabled = false;
+        btn.textContent = 'Import';
+    });
+});
+
+
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadEnrollees();
+
+  // Event listeners
+  document.getElementById('searchInput').addEventListener('input', applyFilters);
+  document.getElementById('sortBy').addEventListener('change', applyFilters);
+  document.getElementById('selectAll').addEventListener('change', toggleSelectAllFromCheckbox);
+  document.getElementById('selectAllHeader').addEventListener('change', toggleSelectAllFromCheckbox);
+
+  // Add enrollee form
+  document.getElementById('addEnrolleeForm').addEventListener('submit', handleAddEnrollee);
+
+  // Edit enrollee form
+  document.getElementById('editEnrolleeForm').addEventListener('submit', saveEditEnrollee);
+});
+
+// ------------------------------
+// Load Enrollees from API
+// ------------------------------
+async function loadEnrollees() {
+  try {
+    const res = await fetch('/api/enrollees');
+    const data = await res.json();
+    if (data.success) {
+      // Ensure each enrollee has expected keys (fallbacks)
+      enrolleesData = data.enrollees.map(e => ({
+        id: e.id,
+        name: e.name || '',
+        email: e.email || '',
+        reference_code: e.reference_code || '',
+        status: e.status || 'not_started',
+        registration_date: e.registration_date || null,
+        exam_date: e.exam_date || null
+      }));
+
+      applyFilters();
+      updateStats();
+
+      document.querySelectorAll('.filter-buttons button').forEach(b => {
+        if (b.dataset.filter === currentFilter) {
+            b.classList.add('active');
+        } else {
+            b.classList.remove('active');
+        }
+      });
+    } else {
+      enrolleesData = [];
+      renderTable([]);
+      updateStats();
+    }
+  } catch (e) {
+    console.error(e);
+    alert('Error loading enrollees');
+  }
+}
+
+// ------------------------------
+// Apply Search, Sort, and Filter
+// ------------------------------
+function applyFilters() {
+  const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+  const sortBy = document.getElementById('sortBy').value;
+
+  let filtered = enrolleesData.filter(e => {
+    const matchSearch =
+      (e.name || '').toLowerCase().includes(searchTerm) ||
+      (e.email || '').toLowerCase().includes(searchTerm) ||
+      (e.reference_code || '').toLowerCase().includes(searchTerm);
+
+    const matchFilter =
+      currentFilter === 'all' ||
+      (currentFilter === 'not_started' && e.status === 'not_started') ||
+      (currentFilter === 'in_progress' && e.status === 'in_progress') ||
+      (currentFilter === 'completed' && e.status === 'completed');
+
+    return matchSearch && matchFilter;
+  });
+
+  // Sorting
+  filtered.sort((a, b) => {
+    if (sortBy === 'name') return (a.name || '').localeCompare(b.name || '');
+    if (sortBy === 'date') return (new Date(b.exam_date || 0)) - (new Date(a.exam_date || 0));
+    if (sortBy === 'score') return (b.score || 0) - (a.score || 0);
+    if (sortBy === 'status') return (a.status || '').localeCompare(b.status || '');
+    return 0;
+  });
+
+  renderTable(filtered);
+  updateStats();
+}
+
+// ------------------------------
+// Render Table Rows
+// ------------------------------
+function renderTable(data) {
+  const tbody = document.getElementById('enrolleesTableBody');
+  if (!data.length) {
+    tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-muted"><i class="fas fa-inbox fa-3x mb-3 d-block"></i>No enrollees found</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = data.map(e => `
+    <tr>
+      <td><input type="checkbox" class="enrollee-checkbox" value="${e.id}" ${selectedIds.has(e.id) ? 'checked' : ''}></td>
+      <td>${escapeHtml(e.name)}</td>
+      <td>${escapeEmail(e.email)}</td>
+      <td>${escapeHtml(e.reference_code)}</td>
+      <td>${getStatusBadge(e.status)}</td>
+      <td>${formatDate(e.registration_date)}</td>
+      <td>${formatDate(e.exam_date)}</td>
+      <td>
+        <button class="btn btn-sm btn-info" onclick="viewDetails(${e.id})"><i class="fas fa-eye"></i></button>
+        <button class="btn btn-sm btn-warning" onclick="editEnrolleeModal(${e.id})"><i class="fas fa-edit"></i></button>
+        <button class="btn btn-sm btn-danger" onclick="deleteEnrollee(${e.id})"><i class="fas fa-trash"></i></button>
+      </td>
+    </tr>
+  `).join('');
+
+  // Attach checkbox listeners
+  document.querySelectorAll('.enrollee-checkbox').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const id = parseInt(cb.value);
+      if (cb.checked) selectedIds.add(id);
+      else selectedIds.delete(id);
+    });
+  });
+}
+
+// ------------------------------
+// Utility: small escaping helpers
+// ------------------------------
+function escapeHtml(str){ return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escapeEmail(str){ return escapeHtml(str); }
+
+// ------------------------------
+// Status and Score Badges
+// ------------------------------
+function getStatusBadge(status) {
+  const classes = {
+    'not_started': 'status-not-started',
+    'in_progress': 'status-in-progress',
+    'completed': 'status-completed'
+  };
+  const label = (status || '').replace('_', ' ');
+  return `<span class="status-badge ${classes[status] || 'status-not-started'}">${label}</span>`;
+}
+
+function getScoreBadge(score) {
+  if (score === null || score === undefined) return '-';
+  if (score >= 90) return `<span class="score-badge score-excellent">${score}%</span>`;
+  if (score >= 75) return `<span class="score-badge score-good">${score}%</span>`;
+  if (score >= 60) return `<span class="score-badge score-average">${score}%</span>`;
+  return `<span class="score-badge score-poor">${score}%</span>`;
+}
+
+function formatDate(date) {
+  return date ? new Date(date).toLocaleDateString() : 'Not scheduled';
+}
+
+// ------------------------------
+// Update Dashboard Stats
+// ------------------------------
+function updateStats() {
+  const notStarted = enrolleesData.filter(e => e.status === 'not_started').length;
+  const inProgress = enrolleesData.filter(e => e.status === 'in_progress').length;
+  const completed = enrolleesData.filter(e => e.status === 'completed').length;
+
+  document.getElementById('notStartedCount').textContent = notStarted;
+  document.getElementById('inProgressCount').textContent = inProgress;
+  document.getElementById('completedCount').textContent = completed;
+}
+
+// ------------------------------
+// Select All Checkboxes
+// ------------------------------
+function toggleSelectAllFromCheckbox(e) {
+  const checked = e.target.checked;
+  document.querySelectorAll('.enrollee-checkbox').forEach(cb => cb.checked = checked);
+  selectedIds = checked ? new Set(enrolleesData.map(en => en.id)) : new Set();
+}
+
+// ------------------------------
+// Add Enrollee
+// ------------------------------
+async function handleAddEnrollee(ev) {
+  ev.preventDefault();
+  const form = ev.target;
+  const data = Object.fromEntries(new FormData(form));
+  try {
+    const res = await fetch('/api/enrollees', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    const result = await res.json();
+    if (result.success) {
+      bootstrap.Modal.getInstance(document.getElementById('addEnrolleeModal')).hide();
+      form.reset();
+      await loadEnrollees();
+      alert('Enrollee added successfully');
+    } else {
+      alert(result.error || 'Error adding enrollee');
+    }
+  } catch (err) {
+    console.error(err);
+    alert('Failed to add enrollee');
+  }
+}
+
+// bulk enrollee
+function importCSV() {
+    const importForm = document.getElementById('importForm');
+    const fileInput = importForm.querySelector('input[name="file"]');
+    const messageBox = document.getElementById('importMessage') || createMessageBox();
+
+    if (!fileInput.files.length) {
+        messageBox.textContent = 'Please select a file to import.';
+        messageBox.className = 'text-danger';
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+
+    const btn = event.target;
+    btn.disabled = true;
+    btn.textContent = 'Importing...';
+
+    fetch('/admin/enrollees/import', {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        messageBox.textContent = data.message;
+        messageBox.className = data.success ? 'text-success' : 'text-danger';
+        btn.disabled = false;
+        btn.textContent = 'Import';
+    })
+    .catch(err => {
+        console.error(err);
+        messageBox.textContent = 'Error importing file.';
+        messageBox.className = 'text-danger';
+        btn.disabled = false;
+        btn.textContent = 'Import';
+    });
+
+    function createMessageBox() {
+        const div = document.createElement('div');
+        div.id = 'importMessage';
+        div.className = 'mt-2';
+        importForm.parentNode.insertBefore(div, importForm.nextSibling);
+        return div;
+    }
+}
+
+// export enrollees
+function exportToCSV() {
+  if (!enrolleesData.length) {
+    alert('No data to export');
+    return;
+  }
+
+  const headers = [
+    'Name',
+    'Email',
+    'Reference Code',
+    'Status',
+    'Registration Date',
+    'Exam Date'
+  ];
+
+  const rows = enrolleesData.map(e => [
+    `"${e.name}"`,
+    `"${e.email}"`,
+    `"${e.reference_code}"`,
+    `"${e.status}"`,
+    `"${e.registration_date || ''}"`,
+    `"${e.exam_date || ''}"`
+  ]);
+
+  const csvContent = [
+    headers.join(','),
+    ...rows.map(r => r.join(','))
+  ].join('\n');
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'enrollees.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ------------------------------
+// Edit Enrollee (open modal)
+// ------------------------------
+function editEnrolleeModal(id) {
+  const enrollee = enrolleesData.find(e => e.id === id);
+  if (!enrollee) return alert('Enrollee not found');
+
+  const form = document.getElementById('editEnrolleeForm');
+  form.elements['id'].value = enrollee.id;
+  form.elements['name'].value = enrollee.name;
+  form.elements['email'].value = enrollee.email;
+  form.elements['status'].value = enrollee.status;
+  if (form.elements['registration_date']) {
+    form.elements['registration_date'].value = enrollee.registration_date ? new Date(enrollee.registration_date).toISOString().slice(0,10) : '';
+  }
+  if (form.elements['exam_date']) {
+    form.elements['exam_date'].value = enrollee.exam_date ? new Date(enrollee.exam_date).toISOString().slice(0,16) : '';
+  }
+  new bootstrap.Modal(document.getElementById('editEnrolleeModal')).show();
+}
+
+// ------------------------------
+// Save edited enrollee (PUT)
+// ------------------------------
+async function saveEditEnrollee(ev) {
+  ev.preventDefault();
+  const data = Object.fromEntries(new FormData(ev.target));
+  const id = data.id;
+  try {
+    const res = await fetch(`/api/enrollees/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    const result = await res.json();
+    if (result.success) {
+      bootstrap.Modal.getInstance(document.getElementById('editEnrolleeModal')).hide();
+      await loadEnrollees();
+      alert('Enrollee updated successfully');
+    } else {
+      alert(result.error || 'Error updating enrollee');
+    }
+  } catch (err) {
+    console.error(err);
+    alert('Failed to update enrollee');
+  }
+}
+
+// ------------------------------
+// Delete Enrollee
+// ------------------------------
+async function deleteEnrollee(id) {
+  const enrollee = enrolleesData.find(e => e.id === id);
+  if (!enrollee) return alert("Enrollee not found");
+
+  if (!confirm(`Are you sure you want to delete ${enrollee.name}?`)) return;
+  try {
+    const res = await fetch(`/api/enrollees/${id}`, { method: 'DELETE' });
+    const result = await res.json();
+    if (result.success) {
+      // remove locally and refresh view
+      enrolleesData = enrolleesData.filter(e => e.id !== id);
+      applyFilters();
+      updateStats();
+      alert('Enrollee deleted successfully');
+    } else {
+      alert(result.error || 'Error deleting enrollee');
+    }
+  } catch (err) {
+    console.error(err);
+    alert('Failed to delete enrollee');
+  }
+}
+
+// ------------------------------
+// Status Filter Buttons
+// ------------------------------
+function setFilter(filter, btn) {
+  currentFilter = filter;
+
+  // Remove active class from all filter buttons
+  document.querySelectorAll('.filter-buttons button').forEach(b => b.classList.remove('active'));
+
+  // Add active class to the clicked button
+  if (btn) btn.classList.add('active');
+
+  // Re-apply filters
+  applyFilters();
+}
+
+// ------------------------------
+// View Details - simple modal or alert
+// ------------------------------
+function viewDetails(id) {
+  const enrollee = enrolleesData.find(e => e.id === id);
+  if (!enrollee) return alert('Enrollee not found');
+
+  // If you want a modal UI here, replace with modal population.
+  const details = [
+    `Name: ${enrollee.name}`,
+    `Email: ${enrollee.email}`,
+    `Reference Code: ${enrollee.reference_code}`,
+    `Status: ${enrollee.status.replace('_', ' ')}`,
+    `Exam Date: ${enrollee.exam_date ? new Date(enrollee.exam_date).toLocaleString() : 'Not scheduled'}`,
+    `Score: ${enrollee.score ?? '-'}`
+  ].join('\n');
+  alert(details);
+}
+
+
+// ------------------------------
+// script to auto-update enrollees
+// ------------------------------
+function updateEnrolleeCounts() {
+  fetch('/api/enrollees')
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        document.getElementById("notStartedCount").textContent = data.not_started_count;
+        document.getElementById("inProgressCount").textContent = data.in_progress_count;
+        document.getElementById("completedCount").textContent = data.completed_count;
+      }
+    })
+    .catch(console.error);
+}
+
+// Call once on load
+updateEnrolleeCounts();
+
+// Optional: auto-refresh every few seconds
+setInterval(updateEnrolleeCounts, 5000);
+</script>
+
+</body>
+</html>

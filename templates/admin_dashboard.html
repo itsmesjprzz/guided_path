@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard | Entrance Exam System</title>
+
+  <!-- Bootstrap & Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    /* --- Navbar --- */
+    .navbar-custom {
+      background-color: #ff0000 !important;
+      color: white;
+    }
+    .navbar-custom .nav-link, 
+    .navbar-custom .navbar-brand,
+    .navbar-custom .dropdown-toggle {
+      color: white !important;
+    }
+
+    /* --- Dashboard Cards --- */
+    .card-section {
+      margin-bottom: 40px;
+    }
+
+    /* --- Recent Activity Card --- */
+    .activity-card .card-header {
+      background: linear-gradient(135deg, #ff6666 0%, #cc4444 100%);
+      color: white;
+      font-size: 20px;
+      font-weight: 600;
+      padding: 18px 24px;
+      border: none;
+      position: relative;
+    }
+
+    .activity-card .list-group-item {
+      padding: 18px 24px;
+      border: none;
+      border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      align-items: start;
+      gap: 12px;
+      transition: 0.3s;
+    }
+    .activity-card .list-group-item::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 6px;
+    }
+    .activity-card .list-group-item:hover {
+      background: #fff5f5;
+      padding-left: 32px;
+    }
+    .activity-card .list-group-item.empty-state {
+      text-align: center;
+      color: #999;
+      font-style: italic;
+      padding: 40px 24px;
+      justify-content: center;
+    }
+  </style>
+</head>
+
+<body class="bg-light">
+  <main>
+    <!-- Navbar -->
+     
+<nav class="navbar navbar-expand-lg navbar-light navbar-custom">
+  <div class="container-fluid">
+    <a class="navbar-brand ms-2" href="{{ url_for('dashboard') }}">
+      Online Entrance Exam System
+    </a>
+
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav d-flex flex-row gap-5 mx-auto"> <!-- Increased gap from 4 → 5 -->
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard') }}"><i class="fa fa-home"></i> Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_enrollees') }}"><i class="fa fa-user-tie"></i> Enrollees</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_exam_set') }}"><i class="fa fa-th-list"></i> Exam Set</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('results') }}"><i class="fa fa-chart-bar"></i> Results</a></li>
+      </ul>
+
+      <div class="dropdown me-2">
+        <button class="btn dropdown-toggle bg-transparent border-0 text-white" data-bs-toggle="dropdown">
+          Hello, {{ session['fullname'] }}
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><a class="dropdown-item" href="/logout">Logout</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</nav>
+
+
+
+    <!-- Dashboard Content -->
+    <div class="container py-4">
+      <h2 class="mb-4 fw-bold">Admin Dashboard</h2>
+
+      <!-- Dashboard Cards -->
+      <div class="row g-4 mb-5">
+        <div class="col-md-4">
+          <div class="card shadow-sm text-center p-3 border-0">
+            <h5>Currently Taking</h5>
+            <h2 id="currentTakingCount" class="fw-bold text-primary">0</h2>
+            <p class="text-muted">Students currently taking the exam</p>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="card shadow-sm text-center p-3 border-0">
+            <h5>Total Enrolled</h5>
+            <h2 id="totalEnrolledCount" class="fw-bold text-success">0</h2>
+            <p class="text-muted">All registered examinees</p>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="card shadow-sm text-center p-3 border-0">
+            <h5>Finished Exams</h5>
+            <h2 id="finishedCount" class="fw-bold text-danger">0</h2>
+            <p class="text-muted">Completed their exam</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Activity -->
+       <div class="d-flex gap-2 mb-2 align-items-center">
+        <label for="filterStart">From:</label>
+         <input type="date" id="filterStart" class="form-control form-control-sm" style="width: 150px;">
+         <label for="filterEnd">To:</label>
+         <input type="date" id="filterEnd" class="form-control form-control-sm" style="width: 150px;">
+        <button class="btn btn-sm btn-primary" id="applyActivityFilter">Apply</button>
+       </div>
+
+      <div class="card activity-card shadow-sm">
+        <div class="card-header">Recent Activity</div>
+        <ul class="list-group list-group-flush" id="activityList">
+          {% for activity in recent_activities %}
+            <li class="list-group-item">
+              <div>
+                <span class="text-danger fw-bold">{{ activity.created_at }}</span> —
+                <span class="fw-semibold">{{ activity.user }}</span>:
+                {{ activity.action }}
+              </div>
+            </li>
+          {% else %}
+            <li class="list-group-item empty-state">No recent activity</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <!-- Bootstrap -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    // --- Update Counts ---
+    function updateDashboardCounts() {
+      fetch('/api/enrollees')
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            document.getElementById('currentTakingCount').textContent = data.active_count;
+            document.getElementById('totalEnrolledCount').textContent = data.total_enrolled;
+            document.getElementById('finishedCount').textContent = data.finished_count;
+          }
+        })
+        .catch(console.error);
+    }
+
+    function updateDashboardCountsLocal() {
+    const total = enrolleesData.length;
+    const finished = enrolleesData.filter(e => e.status === 'completed').length;
+    const taking = enrolleesData.filter(e => e.status === 'in_progress').length;
+
+    const totalCard = document.getElementById('totalEnrolledCount');
+    const takingCard = document.getElementById('currentTakingCount');
+    const finishedCard = document.getElementById('finishedCount');
+
+    if (totalCard) totalCard.textContent = total;
+    if (takingCard) takingCard.textContent = taking;
+    if (finishedCard) finishedCard.textContent = finished;
+
+    // currently taking card function
+      function updateCurrentlyTaking() {
+    fetch('/api/enrollees')
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('currentTakingCount').textContent = data.in_progress_count;
+            }
+        })
+        .catch(console.error);
+}
+
+// Initial load
+updateCurrentlyTaking();
+
+// Refresh every 5 seconds to keep the count live
+setInterval(updateCurrentlyTaking, 5000);
+    
+}
+    // --- Fetch Recent Activities ---
+    function fetchRecentActivity(start=null, end=null) {
+  let url = '/api/activity_logs';
+  const params = [];
+  if(start) params.push(`start=${start}`);
+  if(end) params.push(`end=${end}`);
+  if(params.length) url += '?' + params.join('&');
+
+  fetch(url)
+    .then(res => res.json())
+    .then(data => {
+      const list = document.getElementById('activityList');
+      list.innerHTML = '';
+
+      if (data.success && data.logs.length) {
+        data.logs.forEach(log => {
+          const li = document.createElement('li');
+          li.className = 'list-group-item';
+          li.innerHTML = `
+            <div>
+              <span class="text-danger fw-bold">${new Date(log.timestamp).toLocaleString()}</span> —
+              <span class="fw-semibold">${log.user}</span>: ${log.action}
+            </div>`;
+          list.appendChild(li);
+        });
+      } else {
+        list.innerHTML = '<li class="list-group-item empty-state">No recent activity</li>';
+      }
+    })
+    .catch(console.error);
+}
+
+// --- Filter button event ---
+document.getElementById('applyActivityFilter').addEventListener('click', () => {
+  const start = document.getElementById('filterStart').value;
+  const end = document.getElementById('filterEnd').value;
+  fetchRecentActivity(start || null, end || null);
+});
+
+// Initial + auto refresh without filter
+fetchRecentActivity();
+setInterval(() => fetchRecentActivity(
+  document.getElementById('filterStart').value || null,
+  document.getElementById('filterEnd').value || null
+), 5000);
+
+//dashboard count
+setInterval(() => {
+    fetch('/api/enrollees')
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('currentTakingCount').textContent = data.active_count;
+            document.getElementById('totalEnrolledCount').textContent = data.total_enrolled;
+            document.getElementById('finishedCount').textContent = data.finished_count;
+        }
+    })
+    .catch(console.error);
+}, 5000);
+
+//ref code
+fetch('/api/enrollees', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ name: nameInput.value, email: emailInput.value })
+})
+.then(res => res.json())
+.then(data => {
+    if(data.success) {
+        alert(`Enrollee created! Reference Code: ${data.reference_code}`);
+        // Or display it in the dashboard table
+    }
+})
+  </script>
+</body>
+</html>

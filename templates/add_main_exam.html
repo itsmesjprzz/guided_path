@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Edit Main Exam | Admin</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    body {
+      background-color: #f4f6f9;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .form-container {
+      max-width: 700px;
+      margin: 50px auto;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+      padding: 30px 40px;
+    }
+
+    .form-container h3 {
+      text-align: center;
+      margin-bottom: 25px;
+      color: #dc3545;
+      font-weight: 600;
+    }
+
+    .form-label {
+      font-weight: 500;
+      margin-top: 10px;
+    }
+
+    .form-control {
+      border-radius: 10px;
+      border: 1px solid #ddd;
+      transition: all 0.2s ease;
+    }
+
+    .form-control:focus {
+      border-color: #dc3545;
+      box-shadow: 0 0 5px rgba(220, 53, 69, 0.3);
+    }
+
+    .btn-custom {
+      background-color: #dc3545;
+      color: white;
+      border-radius: 10px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      width: 100%;
+      margin-top: 20px;
+    }
+
+    .btn-custom:hover {
+      background-color: #b02a37;
+      transform: scale(1.03);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="form-container">
+    <h3>Add Question — Main Entrance Exam</h3>
+
+    <form action="{{ url_for('add_main_exam_question') }}" method="POST">
+      <div class="mb-3">
+        <label class="form-label">Subject</label>
+        <input type="text" class="form-control" name="subject" placeholder="e.g. Math, Science, English" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Question</label>
+        <textarea class="form-control" name="question" rows="3" placeholder="Enter question text..." required></textarea>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Choices</label>
+        <input type="text" class="form-control mb-2" name="choice_a" placeholder="Choice A" required>
+        <input type="text" class="form-control mb-2" name="choice_b" placeholder="Choice B" required>
+        <input type="text" class="form-control mb-2" name="choice_c" placeholder="Choice C" required>
+        <input type="text" class="form-control mb-2" name="choice_d" placeholder="Choice D" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Correct Answer</label>
+        <input type="text" class="form-control" name="correct_answer" placeholder="Enter A, B, C, or D" maxlength="1" required>
+      </div>
+
+      <button type="submit" class="btn btn-custom">Add Question</button>
+      <button type="button" class="btn btn-custom" onclick="history.back()">← Back</button>
+    </form>
+  </div> 
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

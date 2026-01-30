@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Exam Questions | Entrance Exam System</title>
+
+  <!-- Bootstrap & Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+ * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #f8f9fa;
+  min-height: 100vh;
+  font-family: Arial, sans-serif;
+}
+
+/* --- Navbar --- */
+.navbar-custom {
+  background-color: #ff0000 !important;
+  color: white;
+}
+.navbar-custom .nav-link,
+.navbar-custom .navbar-brand,
+.navbar-custom .dropdown-toggle {
+  color: white !important;
+}
+
+/* --- Full Width Container --- */
+.dashboard-container {
+  padding: 0;
+  max-width: 100%;
+  width: 100%;
+}
+
+.content-wrapper {
+  padding: 30px;
+  min-height: calc(100vh - 56px);
+}
+
+/* --- Main Layout --- */
+.exam-layout {
+  display: flex;
+  gap: 25px;
+}
+
+/* --- Subject Count Sidebar --- */
+.subject-sidebar {
+  flex: 0 0 320px;
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  height: fit-content;
+  position: sticky;
+  top: 20px;
+}
+
+.subject-sidebar h4 {
+  font-weight: 700;
+  margin-bottom: 25px;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.3em;
+}
+
+.subject-card {
+  background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+  border-radius: 10px;
+  padding: 18px;
+  margin-bottom: 15px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s;
+  cursor: pointer;
+  border-left: 5px solid;
+  position: relative;
+  overflow: hidden;
+}
+
+.subject-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100px;
+  height: 100px;
+  opacity: 0.1;
+  border-radius: 50%;
+  transform: translate(30%, -30%);
+}
+
+.subject-card:hover {
+  transform: translateX(5px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
+}
+
+/* Subject colors */
+.subject-card.mathematics { border-left-color: #3b82f6; }
+.subject-card.mathematics::before { background: #3b82f6; }
+.subject-card.science { border-left-color: #10b981; }
+.subject-card.science::before { background: #10b981; }
+.subject-card.language { border-left-color: #f59e0b; }
+.subject-card.language::before { background: #f59e0b; }
+.subject-card.reading { border-left-color: #ef4444; }
+.subject-card.reading::before { background: #ef4444; }
+
+.subject-name {
+  font-weight: 600;
+  font-size: 1.1em;
+  color: #333;
+  margin-bottom: 8px;
+  position: relative;
+  z-index: 1;
+}
+
+.subject-count {
+  font-size: 2.2em;
+  font-weight: bold;
+  color: #ff0000;
+  position: relative;
+  z-index: 1;
+  line-height: 1;
+}
+
+.subject-label {
+  font-size: 0.85em;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 5px;
+  position: relative;
+  z-index: 1;
+}
+
+/* --- Questions Section --- */
+.questions-section {
+  flex: 1;
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.questions-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.questions-header h4 {
+  font-weight: 700;
+  color: #333;
+  font-size: 1.5em;
+  margin: 0;
+}
+
+.search-filter-row {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.search-box {
+  flex: 1;
+  min-width: 300px;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 12px 20px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 1em;
+  transition: all 0.3s;
+}
+
+.search-box input:focus {
+  outline: none;
+  border-color: #ff0000;
+  box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.1);
+}
+
+.filter-section {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  padding: 10px 20px;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 0.9em;
+  font-weight: 500;
+  color: #666;
+}
+
+.filter-btn:hover {
+  border-color: #ff0000;
+  color: #ff0000;
+  background: #fff5f5;
+}
+
+.filter-btn.active {
+  background: #ff0000;
+  color: white;
+  border-color: #ff0000;
+}
+
+/* --- Questions Table --- */
+.questions-table-wrapper {
+  overflow-x: auto;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+}
+
+.questions-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 900px;
+}
+
+.questions-table thead {
+  background: linear-gradient(135deg, #ff6666 0%, #cc4444 100%);
+  color: white;
+}
+
+.questions-table th {
+  padding: 18px 20px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.9em;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.questions-table td {
+  padding: 18px 20px;
+  border-bottom: 1px solid #f3f4f6;
+  color: #333;
+  vertical-align: middle;
+}
+
+.questions-table tbody tr {
+  transition: all 0.2s;
+}
+
+.questions-table tbody tr:hover {
+  background-color: #fff5f5;
+}
+
+.questions-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.question-text {
+  max-width: 400px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* --- Subject Badges --- */
+.subject-badge {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85em;
+  font-weight: 600;
+  white-space: nowrap;
+  color: white;
+}
+
+/* Badge colors */
+.badge-Mathematics { background: #f87171; }
+.badge-Science { background: #34d399; }
+.badge-Language { background: #fbbf24; color: #000; }
+.badge-Reading { background: #90e6fc; }
+
+/* --- Difficulty Badges --- */
+.difficulty-badge {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85em;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.difficulty-easy { background: #d1fae5; color: #065f46; }
+.difficulty-medium { background: #fed7aa; color: #9a3412; }
+.difficulty-hard { background: #fecaca; color: #991b1b; }
+
+/* --- Action Buttons --- */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.icon-btn {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 0.9em;
+}
+
+.btn-view { background: #dbeafe; color: #1e40af; }
+.btn-edit { background: #fef3c7; color: #92400e; }
+.btn-delete { background: #fee2e2; color: #991b1b; }
+
+.icon-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.empty-state-questions {
+  text-align: center;
+  padding: 60px 20px;
+  color: #999;
+}
+
+.empty-state-questions i {
+  font-size: 4em;
+  margin-bottom: 20px;
+  opacity: 0.3;
+}
+
+/* --- Responsive Design --- */
+@media (max-width: 1200px) {
+  .exam-layout {
+    flex-direction: column;
+  }
+
+  .subject-sidebar {
+    flex: 1;
+    position: relative;
+    top: 0;
+  }
+
+  .subject-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+  }
+
+  .subject-card {
+    margin-bottom: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .content-wrapper {
+    padding: 20px;
+  }
+
+  .questions-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .search-filter-row {
+    flex-direction: column;
+  }
+
+  .search-box {
+    width: 100%;
+  }
+
+  .subject-cards-grid {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  }
+}
+
+/* --- Choice Options --- */
+.choice-option {
+  padding: 10px 15px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  margin-bottom: 8px;
+}
+.choice-option.correct {
+  background-color: #d1fae5; /* green tint */
+  border-color: #10b981;
+}
+
+  </style>
+</head>
+<body>
+
+  <nav class="navbar navbar-expand-lg navbar-light navbar-custom">
+    <div class="container-fluid">
+      <a class="navbar-brand ms-2" href="{{ url_for('dashboard') }}">Online Entrance Exam System</a>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav d-flex flex-row gap-5 mx-auto">
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard') }}"><i class="fa fa-home"></i> Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_enrollees') }}"><i class="fa fa-user-tie"></i> Enrollees</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_exam_set') }}"><i class="fa fa-th-list"></i> Exam Set</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('results') }}"><i class="fa fa-chart-bar"></i> Results</a></li>
+        </ul>
+        <div class="dropdown me-2">
+          <button class="btn dropdown-toggle bg-transparent border-0 text-white" data-bs-toggle="dropdown">
+            Hello, {{ session['fullname'] }}
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="/logout">Logout</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="dashboard-container">
+    <div class="content-wrapper">
+      <h2 class="mb-4 fw-bold">Exam Questions Management</h2>
+
+      <div class="exam-layout">
+        <aside class="subject-sidebar">
+          <h4><i class="fas fa-chart-pie"></i> Questions by Subject</h4>
+          <div class="subject-cards-grid">
+            {% for subject in subjects %}
+            <div class="subject-card {{ subject.class_name }}" data-subject="{{ subject.name.lower() }}">
+              <div class="subject-name">{{ subject.name }}</div>
+              <div class="subject-count">{{ subject.count }}</div>
+              <div class="subject-label">Questions</div>
+            </div>
+            {% else %}
+            <div class="text-center text-muted py-4">
+              <i class="fas fa-inbox fa-3x mb-3 opacity-25"></i>
+              <p>No subjects available</p>
+            </div>
+            {% endfor %}
+          </div>
+        </aside>
+
+        <main class="questions-section">
+          <div class="questions-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+  <h4><i class="fas fa-list-ul"></i> Questions Database</h4>
+
+  <div class="d-flex align-items-center gap-2 flex-wrap">
+    <!-- Add Question Button -->
+    <button class="btn btn-danger" onclick="window.location.href='{{ url_for('add_main_exam_question') }}'">
+      <i class="fas fa-plus"></i> Add Question
+    </button>
+
+    <!-- Import CSV Button styled like Add Question -->
+    <form action="{{ url_for('import_questions') }}" method="POST" enctype="multipart/form-data" class="d-inline-block">
+      <label class="btn btn-danger mb-0" for="csvFileInput">
+        <i class="fas fa-file-import"></i> Import CSV
+      </label>
+      <input type="file" id="csvFileInput" name="file" accept=".csv" required style="display:none;" onchange="this.form.submit()">
+    </form>
+  </div>
+</div>
+          <div class="search-filter-row">
+            <div class="search-box">
+              <input type="text" id="searchQuestions" placeholder="🔍 Search questions by text, subject, or ID...">
+            </div>
+          </div>
+
+          <div class="filter-section">
+            <button class="filter-btn active" data-filter="all">All Subjects</button>
+            {% for subject in subjects %}
+            <button class="filter-btn" data-filter="{{ subject.name.lower() }}">{{ subject.name }}</button>
+            {% endfor %}
+          </div>
+
+          <div class="questions-table-wrapper mt-4">
+            <table class="questions-table">
+              <thead>
+                <tr>
+                  <th style="width: 80px;">ID</th>
+                  <th>Question</th>
+                  <th style="width: 150px;">Subject</th>
+                  <th style="width: 120px;">Difficulty</th>
+                  <th style="width: 130px;">Date Added</th>
+                  <th style="width: 150px;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="questionsTableBody">
+                {% for question in questions %}
+               
+                <tr
+                  data-id="{{ question.id }}"
+                  data-subject="{{ question.subject }}"
+                  data-question_text="{{ question.question_text|e }}"
+                  data-choice_a="{{ question.choice_a|e }}"
+                  data-choice_b="{{ question.choice_b|e }}"
+                  data-choice_c="{{ question.choice_c|e }}"
+                  data-choice_d="{{ question.choice_d|e }}"
+                  data-correct_option="{{ question.correct_option }}"
+                  data-difficulty="{{ question.difficulty }}"
+                  data-date_added="{{ question.date_added.strftime('%Y-%m-%d') if question.date_added else 'N/A' }}"
+                >
+                  <td>#{{ question.id }}</td>
+                  <td class="question-text" title="{{ question.question_text }}">{{ question.question_text }}</td>
+                  <td><span class="subject-badge badge-{{ question.subject }}">{{ question.subject }}</span></td>
+                  <td><span class="difficulty-badge difficulty-{{ question.difficulty }}">{{ question.difficulty }}</span></td>
+                  <td>{{ question.date_added.strftime('%Y-%m-%d') if question.date_added else 'N/A' }}</td>
+                  <td>
+                    <div class="action-buttons">
+                      <button class="icon-btn btn-view" title="View" onclick="viewQuestionFromRow(this)"><i class="fas fa-eye"></i></button>
+                      <button class="icon-btn btn-edit" title="Edit" onclick="editQuestionFromRow(this)"><i class="fas fa-edit"></i></button>
+                      <button class="icon-btn btn-delete" title="Delete" onclick="deleteQuestionFromRow(this)"><i class="fas fa-trash"></i></button>
+                    </div>
+                  </td>
+                </tr>
+                {% else %}
+                <tr>
+                  <td colspan="6">
+                    <div class="empty-state-questions">
+                      <i class="fas fa-clipboard-question"></i>
+                      <h5>No questions available</h5>
+                      <p>Start by adding your first question to the database</p>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </main>
+      </div>
+    </div>
+  </div>
+
+  <!-- View Modal -->
+  <div class="modal fade" id="viewQuestionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-danger text-white">
+          <h5 class="modal-title">View Question <span id="modalQuestionId"></span></h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p><strong>Subject:</strong> <span id="modalSubject"></span></p>
+          <p><strong>Difficulty:</strong> <span id="modalDifficulty"></span></p>
+          <p><strong>Date Added:</strong> <span id="modalDateAdded"></span></p>
+          <hr>
+          <p id="modalQuestionText"></p>
+          <div class="choices">
+            <div id="choiceA" class="choice-option"><strong>A:</strong> <span class="choice-text"></span></div>
+            <div id="choiceB" class="choice-option"><strong>B:</strong> <span class="choice-text"></span></div>
+            <div id="choiceC" class="choice-option"><strong>C:</strong> <span class="choice-text"></span></div>
+            <div id="choiceD" class="choice-option"><strong>D:</strong> <span class="choice-text"></span></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div class="modal fade" id="editQuestionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-warning text-dark">
+          <h5 class="modal-title">Edit Question <span id="editModalQuestionId"></span></h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="editQuestionForm">
+            <input type="hidden" id="editQuestionId">
+            <div class="mb-3">
+              <label for="editSubject" class="form-label">Subject</label>
+              <input type="text" class="form-control" id="editSubject" required>
+            </div>
+
+            <div class="mb-3">
+              <label for="editDifficulty" class="form-label">Difficulty</label>
+              <select class="form-select" id="editDifficulty" required>
+                <option value="Easy">Easy</option>
+                <option value="Medium">Medium</option>
+                <option value="Hard">Hard</option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label for="editQuestionText" class="form-label">Question Text</label>
+              <textarea class="form-control" id="editQuestionText" rows="3" required></textarea>
+            </div>
+
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="editChoiceA" class="form-label">Choice A</label>
+                <input type="text" class="form-control" id="editChoiceA" required>
+              </div>
+              <div class="col-md-6">
+                <label for="editChoiceB" class="form-label">Choice B</label>
+                <input type="text" class="form-control" id="editChoiceB" required>
+              </div>
+              <div class="col-md-6">
+                <label for="editChoiceC" class="form-label">Choice C</label>
+                <input type="text" class="form-control" id="editChoiceC" required>
+              </div>
+              <div class="col-md-6">
+                <label for="editChoiceD" class="form-label">Choice D</label>
+                <input type="text" class="form-control" id="editChoiceD" required>
+              </div>
+            </div>
+
+            <div class="mb-3 mt-3">
+              <label for="editCorrectAnswer" class="form-label">Correct Answer</label>
+              <select class="form-select" id="editCorrectAnswer" required>
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="C">C</option>
+                <option value="D">D</option>
+              </select>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-success" id="saveEditBtn">Save Changes</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Bootstrap Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+document.addEventListener('DOMContentLoaded', function () {
+
+  // --- Helpers ---
+  const findRowById = (id) => {
+    const rows = document.querySelectorAll('#questionsTableBody tr[data-id]');
+    for (const r of rows) {
+      if (r.getAttribute('data-id') === String(id)) return r;
+    }
+    return null;
+  };
+
+  // --- Search ---
+  const searchInput = document.getElementById('searchQuestions');
+  if (searchInput) {
+    searchInput.addEventListener('input', function (e) {
+      const searchTerm = e.target.value.toLowerCase();
+      const rows = document.querySelectorAll('#questionsTableBody tr');
+      rows.forEach(row => {
+        if (row.querySelector('.empty-state-questions')) return;
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchTerm) ? '' : 'none';
+      });
+    });
+  }
+
+  // --- Filter buttons ---
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', function () {
+      filterBtns.forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      const filter = this.getAttribute('data-filter').toLowerCase();
+      const rows = document.querySelectorAll('#questionsTableBody tr');
+      rows.forEach(row => {
+        if (row.querySelector('.empty-state-questions')) return;
+        const subject = row.getAttribute('data-subject').toLowerCase();
+        row.style.display = (filter === 'all' || subject === filter) ? '' : 'none';
+      });
+    });
+  });
+
+  // --- Subject card click to filter ---
+  document.querySelectorAll('.subject-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const subject = card.getAttribute('data-subject').toLowerCase();
+      const filterBtn = document.querySelector(`.filter-btn[data-filter="${subject}"]`);
+      if (filterBtn) filterBtn.click();
+    });
+  });
+
+  // --- VIEW Question Modal ---
+  window.viewQuestionFromRow = function(btn) {
+    const row = btn.closest('tr');
+    if (!row) return;
+    document.getElementById('modalQuestionId').textContent = `#${row.getAttribute('data-id')}`;
+    document.getElementById('modalSubject').textContent = row.getAttribute('data-subject') || '';
+    document.getElementById('modalDifficulty').textContent = row.getAttribute('data-difficulty') || '';
+    document.getElementById('modalDateAdded').textContent = row.getAttribute('data-date_added') || '';
+    document.getElementById('modalQuestionText').textContent = row.getAttribute('data-question_text') || '';
+
+    document.querySelector('#choiceA .choice-text').textContent = row.getAttribute('data-choice_a') || '';
+    document.querySelector('#choiceB .choice-text').textContent = row.getAttribute('data-choice_b') || '';
+    document.querySelector('#choiceC .choice-text').textContent = row.getAttribute('data-choice_c') || '';
+    document.querySelector('#choiceD .choice-text').textContent = row.getAttribute('data-choice_d') || '';
+
+    // highlight correct choice
+    document.querySelectorAll('.choice-option').forEach(c => c.classList.remove('correct'));
+    const correct = row.getAttribute('data-correct_option');
+    if (correct) {
+      const el = document.getElementById(`choice${correct}`);
+      if (el) el.classList.add('correct');
+    }
+
+    const modal = new bootstrap.Modal(document.getElementById('viewQuestionModal'));
+    modal.show();
+  };
+
+  // --- EDIT Question Modal ---
+  window.editQuestionFromRow = function(btn) {
+    const row = btn.closest('tr');
+    if (!row) return;
+    const id = row.getAttribute('data-id');
+    document.getElementById('editQuestionId').value = id;
+    document.getElementById('editModalQuestionId').textContent = `#${id}`;
+    document.getElementById('editSubject').value = row.getAttribute('data-subject') || '';
+    document.getElementById('editDifficulty').value = row.getAttribute('data-difficulty') || '';
+    document.getElementById('editQuestionText').value = row.getAttribute('data-question_text') || '';
+    document.getElementById('editChoiceA').value = row.getAttribute('data-choice_a') || '';
+    document.getElementById('editChoiceB').value = row.getAttribute('data-choice_b') || '';
+    document.getElementById('editChoiceC').value = row.getAttribute('data-choice_c') || '';
+    document.getElementById('editChoiceD').value = row.getAttribute('data-choice_d') || '';
+    document.getElementById('editCorrectAnswer').value = row.getAttribute('data-correct_option') || 'A';
+
+    const modal = new bootstrap.Modal(document.getElementById('editQuestionModal'));
+    modal.show();
+  };
+
+  // --- SAVE Edited Question ---
+  const saveBtn = document.getElementById('saveEditBtn');
+  if (saveBtn) {
+    saveBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+      const qId = document.getElementById('editQuestionId').value;
+      if (!qId) return alert('Missing question id.');
+
+      const payload = {
+        subject: document.getElementById('editSubject').value,
+        difficulty: document.getElementById('editDifficulty').value,
+        question_text: document.getElementById('editQuestionText').value,
+        choice_a: document.getElementById('editChoiceA').value,
+        choice_b: document.getElementById('editChoiceB').value,
+        choice_c: document.getElementById('editChoiceC').value,
+        choice_d: document.getElementById('editChoiceD').value,
+        correct_option: document.getElementById('editCorrectAnswer').value
+      };
+
+      const row = findRowById(qId);
+      if (row) {
+        row.setAttribute('data-subject', payload.subject);
+        row.setAttribute('data-difficulty', payload.difficulty);
+        row.setAttribute('data-question_text', payload.question_text);
+        row.setAttribute('data-choice_a', payload.choice_a);
+        row.setAttribute('data-choice_b', payload.choice_b);
+        row.setAttribute('data-choice_c', payload.choice_c);
+        row.setAttribute('data-choice_d', payload.choice_d);
+        row.setAttribute('data-correct_option', payload.correct_option);
+
+        row.querySelector('.question-text').textContent = payload.question_text;
+        const subjectBadge = row.querySelector('.subject-badge');
+        if (subjectBadge) subjectBadge.textContent = payload.subject;
+        const diffBadge = row.querySelector('.difficulty-badge');
+        if (diffBadge) diffBadge.textContent = payload.difficulty;
+      }
+
+      const editModal = bootstrap.Modal.getInstance(document.getElementById('editQuestionModal'));
+      if (editModal) editModal.hide();
+
+      // Persist to backend (requires PUT route)
+      fetch(`/api/questions/${qId}`, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) alert('Question saved successfully.');
+        else alert('Question updated locally, server error.');
+      })
+      .catch(err => console.warn('Could not persist edit:', err));
+    });
+  }
+
+  // --- DELETE Question ---
+  window.deleteQuestionFromRow = function(btn) {
+    const row = btn.closest('tr');
+    if (!row) return;
+    const id = row.getAttribute('data-id');
+    if (!id) return;
+    if (!confirm('Are you sure you want to delete this question?')) return;
+    window.location.href = `/admin/exam-set/main/delete/${id}`;
+  };
+
+});
+
+
+</script>
+
+
+
+</body>
+</html>

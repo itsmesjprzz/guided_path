@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam Results | Entrance Exam System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        .navbar-custom {
+      background-color: #ff0000 !important;
+      color: white;
+    }
+    .navbar-custom .nav-link, 
+    .navbar-custom .navbar-brand,
+    .navbar-custom .dropdown-toggle {
+      color: white !important;
+    } 
+
+        .dropdown-white .dropdown-toggle,
+        .dropdown-white .dropdown-item {
+            color: #ffffff !important;
+            background-color: transparent !important;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.35rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .status-not-started {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .status-ongoing {
+            background-color: #0dcaf0;
+            color: #000;
+        }
+
+        .status-completed {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .table-hover tbody tr {
+            transition: all 0.2s;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: #f8f9fa;
+            transform: scale(1.01);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .search-box {
+            max-width: 400px;
+        }
+
+        .filter-buttons .btn {
+            margin: 0 0.25rem;
+        }
+
+        .stats-card {
+            border-left: 4px solid;
+            transition: transform 0.2s;
+        }
+
+        .stats-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stats-card.not-started {
+            border-left-color: #6c757d;
+        }
+
+        .stats-card.ongoing {
+            border-left-color: #0dcaf0;
+        }
+
+        .stats-card.completed {
+            border-left-color: #28a745;
+        }
+
+        .auto-refresh-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 10px 15px;
+            border-radius: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            font-size: 0.85rem;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .refresh-icon {
+            color: #28a745;
+            animation: spin 2s linear infinite;
+        }
+
+        .refresh-icon.paused {
+            animation: none;
+            color: #6c757d;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .last-update-time {
+            color: #6c757d;
+            font-size: 0.75rem;
+        }
+
+        /* Individual Result View Styles */
+        .result-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+        }
+
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #667eea;
+            margin: 0 auto;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .subject-card {
+            border-left: 4px solid #667eea;
+            transition: transform 0.2s;
+        }
+
+        .subject-card:hover {
+            transform: translateX(5px);
+        }
+
+        .progress-bar-custom {
+            height: 25px;
+            font-size: 0.9rem;
+        }
+
+        .remark-excellent {
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .remark-good {
+            color: #17a2b8;
+            font-weight: 600;
+        }
+
+        .remark-average {
+            color: #ffc107;
+            font-weight: 600;
+        }
+
+        .remark-needs-improvement {
+            color: #dc3545;
+            font-weight: 600;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin: 2rem 0;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .btn-custom {
+            padding: 0.75rem 2rem;
+            font-size: 1rem;
+            border-radius: 25px;
+            transition: all 0.3s;
+        }
+
+        .btn-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        #resultsListView, #individualResultView {
+            display: none;
+        }
+
+        #resultsListView.active, #individualResultView.active {
+            display: block;
+        }
+
+        @media print {
+            .navbar, .action-buttons, .auto-refresh-indicator, #resultsListView {
+                display: none;
+            }
+            #individualResultView {
+                display: block !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-light">
+   <nav class="navbar navbar-expand-lg navbar-light navbar-custom">
+  <div class="container-fluid">
+    <a class="navbar-brand ms-2" href="{{ url_for('dashboard') }}">
+      Online Entrance Exam System
+    </a>
+
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav d-flex flex-row gap-5 mx-auto"> <!-- Increased gap from 4 → 5 -->
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard') }}"><i class="fa fa-home"></i> Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_enrollees') }}"><i class="fa fa-user-tie"></i> Enrollees</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_exam_set') }}"><i class="fa fa-th-list"></i> Exam Set</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('results') }}"><i class="fa fa-chart-bar"></i> Results</a></li>
+      </ul>
+
+      <div class="dropdown me-2">
+        <button class="btn dropdown-toggle bg-transparent border-0 text-white" data-bs-toggle="dropdown">
+          Hello, {{ session['fullname'] }}
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><a class="dropdown-item" href="/logout">Logout</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</nav>
+
+    <!-- RESULTS LIST VIEW -->
+    <div id="resultsListView" class="active">
+        <div class="container py-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-chart-bar"></i> Exam Results & Status</h2>
+                <button class="btn btn-outline-primary" onclick="exportToExcel()">
+                    <i class="fas fa-file-excel"></i> Export to Excel
+                </button>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="card shadow-sm stats-card not-started">
+                        <div class="card-body text-center">
+                            <h6 class="text-muted">Not Started</h6>
+                            <h2 class="fw-bold" id="notStartedCount">0</h2>
+                            <small class="text-muted">Students haven't taken exam yet</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card shadow-sm stats-card ongoing">
+                        <div class="card-body text-center">
+                            <h6 class="text-muted">Ongoing</h6>
+                            <h2 class="fw-bold text-info" id="ongoingCount">0</h2>
+                            <small class="text-muted">Currently taking the exam</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card shadow-sm stats-card completed">
+                        <div class="card-body text-center">
+                            <h6 class="text-muted">Completed</h6>
+                            <h2 class="fw-bold text-success" id="completedCount">0</h2>
+                            <small class="text-muted">Finished the exam</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search and Filter -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <div class="input-group search-box">
+                                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                <input type="text" class="form-control" id="searchInput" placeholder="Search by name or reference code...">
+                            </div>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <div class="filter-buttons">
+                                <button class="btn btn-sm btn-outline-secondary active" onclick="filterResults('all')">All</button>
+                                <button class="btn btn-sm btn-outline-secondary" onclick="filterResults('not-started')">Not Started</button>
+                                <button class="btn btn-sm btn-outline-info" onclick="filterResults('ongoing')">Ongoing</button>
+                                <button class="btn btn-sm btn-outline-success" onclick="filterResults('completed')">Completed</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Table -->
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Reference Code</th>
+                                    <th>Student Name</th>
+                                    <th>Date Registered</th>
+                                    <th>Date Taken</th>
+                                    <th>Status</th>
+                                    <th>Score</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resultsTableBody">
+                                <tr>
+                                    <td colspan="8" class="text-center">Loading students data...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- INDIVIDUAL RESULT VIEW -->
+    <div id="individualResultView">
+        <div class="container py-4">
+            <button class="btn btn-outline-secondary mb-3" onclick="backToList()">
+                <i class="fas fa-arrow-left"></i> Back to Results List
+            </button>
+
+            <!-- Header/Confirmation Section -->
+            <div class="result-header">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h2 class="mb-3"><i class="fas fa-trophy"></i> Entrance Exam Results</h2>
+                        <div class="mb-2">
+                            <strong>Student Name:</strong> <span id="studentName">--</span>
+                        </div>
+                        <div class="mb-2">
+                            <strong>Reference Code:</strong> <span id="referenceCode">--</span>
+                        </div>
+                        <div class="mb-2">
+                            <strong>Date Taken:</strong> <span id="dateTaken">--</span>
+                        </div>
+                        <div class="mt-3">
+                            <span class="status-badge status-completed">
+                                <i class="fas fa-check-circle"></i> Completed
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="score-circle" id="overallScore">--</div>
+                        <p class="mt-2 mb-0">Overall Score</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Overall Performance Section -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body text-center p-4">
+                    <h4 class="mb-3">Overall Performance</h4>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h3 class="text-primary" id="totalCorrect">0</h3>
+                            <p class="text-muted">Correct Answers</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h3 class="text-info" id="totalQuestions">0</h3>
+                            <p class="text-muted">Total Questions</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h3 class="text-success" id="percentageScore">0%</h3>
+                            <p class="text-muted">Percentage</p>
+                        </div>
+                    </div>
+                    <div class="alert mt-3" id="performanceMessage" role="alert">
+                        <i class="fas fa-info-circle"></i> <span id="performanceText">--</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subject Area Breakdown -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h4 class="mb-4"><i class="fas fa-chart-line"></i> Subject Area Breakdown</h4>
+                    
+                    <!-- Chart Visualization -->
+                    <div class="chart-container">
+                        <canvas id="subjectChart"></canvas>
+                    </div>
+
+                    <!-- Detailed Table -->
+                    <div class="table-responsive mt-4">
+                        <table class="table table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Subject Area</th>
+                                    <th>Correct</th>
+                                    <th>Total</th>
+                                    <th>Percentage</th>
+                                    <th>Progress</th>
+                                    <th>Remarks</th>
+                                </tr>
+                            </thead>
+                            <tbody id="subjectTableBody">
+                                <tr>
+                                    <td colspan="6" class="text-center">Loading subject data...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Strengths and Weaknesses -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card shadow-sm subject-card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title text-success">
+                                <i class="fas fa-star"></i> Strengths
+                            </h5>
+                            <ul id="strengthsList" class="list-unstyled">
+                                <li>Loading...</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card shadow-sm subject-card h-100" style="border-left-color: #dc3545;">
+                        <div class="card-body">
+                            <h5 class="card-title text-danger">
+                                <i class="fas fa-exclamation-triangle"></i> Areas for Improvement
+                            </h5>
+                            <ul id="weaknessesList" class="list-unstyled">
+                                <li>Loading...</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <button class="btn btn-danger btn-custom" onclick="downloadPDF()">
+                    <i class="fas fa-file-pdf"></i> Download Result (PDF)
+                </button>
+                <button class="btn btn-primary btn-custom" onclick="viewRecommendedPrograms()">
+                    <i class="fas fa-graduation-cap"></i> View Recommended Programs
+                </button>
+                <button class="btn btn-secondary btn-custom" onclick="backToList()">
+                    <i class="fas fa-list"></i> Back to Results List
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auto-refresh indicator -->
+    <div class="auto-refresh-indicator" id="refreshIndicator">
+        <i class="fas fa-sync-alt refresh-icon" id="refreshIcon"></i>
+        <span id="refreshStatus">Auto-updating...</span>
+        <span class="last-update-time" id="lastUpdateTime"></span>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    </body>
+    </html>
