@@ -246,7 +246,7 @@ def send_reference_email(student_name, email, reference_code, expiration):
 
     msg = Message(
         subject="Official Entrance Examination Reference Code - Admissions Office",
-        sender=app.config["MAIL_USERNAME"],
+        sender=app.config["MAIL_DEFAULT_SENDER"],
         recipients=[email],
         html=html,
     )
@@ -256,7 +256,7 @@ def send_reference_email(student_name, email, reference_code, expiration):
 def send_result_email(student, result):
     msg = Message(
         subject="Your Entrance Exam Results",
-        sender=app.config["MAIL_USERNAME"],
+        sender=app.config["MAIL_DEFAULT_SENDER"],
         recipients=[student.email],
         html = f"""
     <div style="font-family: Arial, sans-serif; max-width: 650px; margin: auto; border: 1px solid #ddd;">
