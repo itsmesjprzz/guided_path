@@ -457,17 +457,16 @@ def student_register():
 
     try:
         send_reference_email(enrollee.name, enrollee.email, reference_code, expiration)
+        email_message = "Please check your email for the reference code."
     except Exception as exc:
-        return jsonify({
-            "success": False,
-            "message": f"Registration saved, but email was not sent: {exc}",
-        })
+        print("Email sending failed:", exc)
+        email_message = f"Registration successful, but email was not sent. Your reference code is: {reference_code}"
 
     return jsonify({
         "success": True,
-        "message": "Registration successful. Please check your email for the reference code.",
-    })
-
+        "message": email_message,
+        "reference_code": reference_code
+    })  
 
 @app.route("/student/exam")
 def student_exam():
