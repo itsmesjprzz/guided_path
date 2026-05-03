@@ -15,7 +15,7 @@ from models import db, Enrollee, ActivityLog, StudentAnswer, ExamQuestion, ExamR
 
 
 app = Flask(__name__, static_folder="static")
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///guided_path.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.secret_key = "secret"
 
