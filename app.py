@@ -3,6 +3,7 @@ from flask_mail import Mail, Message
 from datetime import datetime, timedelta, timezone
 from io import TextIOWrapper
 from sqlalchemy import func
+from threading import Thread
 import os
 import csv
 import random
@@ -34,6 +35,7 @@ app.config["MAIL_USE_TLS"] = True
 app.config["MAIL_USERNAME"] = os.environ.get("MAIL_USERNAME")
 app.config["MAIL_PASSWORD"] = os.environ.get("MAIL_PASSWORD")
 app.config["MAIL_DEFAULT_SENDER"] = ("Admissions Office - Guided Path", os.environ.get("MAIL_USERNAME"))
+app.config["MAIL_TIMEOUT"] = 10
 
 db.init_app(app)
 mail = Mail(app)
@@ -119,6 +121,12 @@ PROGRAMS = [
     },
 ]
 
+def send_reference_email_async(student_name, email, reference_code, expiration):
+    try:
+        with app.app_context():
+            send_reference_email(student_name, email, reference_code, expiration)
+    except Exception as exc:
+        print("Email sending failed:", exc)
 
 def generate_reference_code():
     year = datetime.now().year
@@ -455,16 +463,15 @@ def student_register():
     db.session.add(enrollee)
     db.session.commit()
 
-    try:
-        send_reference_email(enrollee.name, enrollee.email, reference_code, expiration)
-        email_message = "Please check your email for the reference code."
-    except Exception as exc:
-        print("Email sending failed:", exc)
-        email_message = f"Registration successful, but email was not sent. Your reference code is: {reference_code}"
+    Thread(
+        target=send_reference_email_async,
+        args=(enrollee.name, enrollee.email, reference_code, expiration),
+        daemon=True
+    ).start()
 
     return jsonify({
         "success": True,
-        "message": email_message,
+        "message": "Registration successful. Please check your email for the reference code.",
         "reference_code": reference_code
     })  
 
