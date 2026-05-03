@@ -3,6 +3,7 @@ from flask_mail import Mail, Message
 from datetime import datetime, timedelta, timezone
 from io import TextIOWrapper
 from sqlalchemy import func
+import os
 import csv
 import random
 import string
@@ -1026,3 +1027,6 @@ if __name__ == "__main__":
     with app.app_context():
         db.create_all()
     app.run(debug=True)
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
