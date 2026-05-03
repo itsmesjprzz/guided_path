@@ -261,7 +261,7 @@ def send_reference_email(student_name, email, reference_code, expiration):
     print("SENDER:", app.config["MAIL_DEFAULT_SENDER"], flush=True)
     print("SENDING TO:", email, flush=True)
     mail.send(msg)
-
+    print("BREVO SEND COMPLETED", flush=True)
 
 def send_result_email(student, result):
     msg = Message(
