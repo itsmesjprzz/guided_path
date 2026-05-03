@@ -15,7 +15,16 @@ from models import db, Enrollee, ActivityLog, StudentAnswer, ExamQuestion, ExamR
 
 
 app = Flask(__name__, static_folder="static")
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+database_url = os.environ.get("DATABASE_URL")
+
+if not database_url:
+    raise RuntimeError("DATABASE_URL is not set. Add it in Railway Variables.")
+
+app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+           "pool_pre_ping": True,
+           "pool_recycle": 300,
+           }
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.secret_key = "secret"
 
