@@ -14,6 +14,7 @@ with open(csv_file, newline='', encoding='utf-8') as f:
             subject=row['subject'],
             difficulty=row['difficulty'],
             question_text=row['question_text'],
+            question_image=row.get('question_image', None),
             choice_a=row['choice_a'],
             choice_b=row['choice_b'],
             choice_c=row['choice_c'],

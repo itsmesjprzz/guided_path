@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -7,696 +6,1169 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Main Exam | Entrance Exam System</title>
 
-  <!-- Bootstrap & Icons -->
-
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
   <style>
-    /* --- All your CSS from original template remains unchanged --- */
-     /* --- Navbar --- */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      /* ── Red & White palette only ── */
+      --r-900:   #7b1a13;
+      --r-700:   #a93226;
+      --r-500:   #c0392b;
+      --r-400:   #e74c3c;
+      --r-100:   #fdecea;
+      --r-50:    #fff5f4;
+      --white:   #ffffff;
+      --off:     #fafafa;
+      --rule:    #f5dbd9;  /* very pale red-tinted divider */
+      --ink:     #1a0a09;
+      --ink-2:   #4a1f1a;
+      --ink-3:   #9e5a52;
+      --ink-4:   #c9908a;
+
+      --shadow-xs: 0 1px 3px rgba(192,57,43,0.08);
+      --shadow-sm: 0 2px 10px rgba(192,57,43,0.10);
+      --shadow-md: 0 6px 24px rgba(192,57,43,0.13);
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--r-50);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+
+    /* ═══════════════════════════════
+       NAVBAR  — unchanged red brand
+    ═══════════════════════════════ */
     .navbar-custom {
       background-color: #ff0000 !important;
-      color: white;
+      padding: 0 20px;
+      min-height: 58px;
+      box-shadow: 0 2px 12px rgba(200,0,0,0.28);
     }
-    .navbar-custom .nav-link, 
-    .navbar-custom .navbar-brand,
-    .navbar-custom .dropdown-toggle {
+    .navbar-custom .navbar-brand {
       color: white !important;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 700;
+      font-size: 17px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
     }
-
-    /* --- Exam Container --- */
-    body {
-      background-color: #f8f9fa;
+    .navbar-custom .navbar-brand .brand-icon {
+      width: 32px; height: 32px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px;
     }
-
-    .exam-wrapper {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-
-    /* --- Timer Card --- */
-    .timer-card {
-      background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+    .navbar-custom .nav-link,
+    .navbar-custom .navbar-text,
+    .navbar-custom .dropdown-toggle { color: white !important; }
+    .nav-student-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 24px;
+      padding: 5px 14px 5px 7px;
+      font-size: 13px;
+      font-weight: 500;
       color: white;
-      border-radius: 15px;
-      padding: 20px;
-      text-align: center;
-      box-shadow: 0 4px 15px rgba(255, 0, 0, 0.3);
-      position: sticky;
-      top: 20px;
-      z-index: 100;
     }
-
-    .timer-label {
-      font-size: 14px;
-      font-weight: 600;
+    .student-avatar {
+      width: 26px; height: 26px;
+      background: white;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: #ff0000;
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .nav-live-badge {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
       text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 10px;
-      opacity: 0.9;
+      color: rgba(255,255,255,0.75);
+      background: rgba(0,0,0,0.15);
+      padding: 3px 9px;
+      border-radius: 20px;
     }
 
-    .timer-value {
-      font-size: 48px;
-      font-weight: bold;
-      font-family: 'Courier New', monospace;
+    /* ═══════════════════════════════
+       LAYOUT WRAPPER
+    ═══════════════════════════════ */
+    .exam-wrapper {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 28px 20px 80px;
+    }
+    .exam-grid {
+      display: grid;
+      grid-template-columns: 1fr 292px;
+      gap: 24px;
+      align-items: start;
     }
 
-    .timer-warning {
-      animation: pulse 1s infinite;
-    }
 
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-    }
 
-    /* --- Progress Bar --- */
-    .progress-section {
-      background: white;
-      border-radius: 15px;
-      padding: 25px;
-      margin-bottom: 20px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    }
+    /* ═══════════════════════════════
+       QUESTIONS CONTAINER
+    ═══════════════════════════════ */
+    .questions-container { display: flex; flex-direction: column; gap: 18px; }
 
-    .progress {
-      height: 12px;
-      border-radius: 10px;
-      background-color: #f0f0f0;
-    }
-
-    .progress-bar {
-      background: linear-gradient(90deg, #ff0000 0%, #cc0000 100%);
-      transition: width 0.3s ease;
-    }
-
-    .progress-text {
-      text-align: center;
-      margin-top: 15px;
-      font-weight: 600;
-      color: #333;
-      font-size: 16px;
-    }
-
-    /* --- Question Cards --- */
-    .questions-container {
-      background: white;
-      border-radius: 15px;
-      padding: 30px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    }
-
+    /* ═══════════════════════════════
+       QUESTION CARD
+    ═══════════════════════════════ */
     .question-card {
-      background: #ffffff;
-      border: 2px solid #e9ecef;
-      border-radius: 12px;
-      padding: 30px;
-      margin-bottom: 25px;
-      transition: all 0.3s ease;
+      background: var(--white);
+      border: 1.5px solid var(--rule);
+      border-left: 5px solid #e8c5c2;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: var(--shadow-xs);
+      transition: box-shadow 0.25s ease, border-left-color 0.25s ease;
+      opacity: 0;
+      transform: translateY(12px);
+      animation: cardIn 0.35s ease forwards;
     }
+    @keyframes cardIn { to { opacity: 1; transform: translateY(0); } }
+    .question-card:hover { box-shadow: var(--shadow-sm); }
+    .question-card.answered  { border-left-color: var(--r-500); }
+    .question-card.skipped   { border-left-color: var(--r-400); border-left-style: dashed; }
 
-    .question-card:hover {
-      border-color: #ff0000;
-      box-shadow: 0 4px 15px rgba(255, 0, 0, 0.1);
-    }
-
-    .question-card.answered {
-      border-color: #28a745;
-      background-color: #f8fff9;
-    }
-
+    /* Card header */
     .question-header {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      margin-bottom: 20px;
-      padding-bottom: 15px;
-      border-bottom: 2px solid #f8f9fa;
+      justify-content: space-between;
+      padding: 13px 20px;
+      background: var(--r-50);
+      border-bottom: 1px solid var(--rule);
     }
+    .question-card.answered .question-header { background: var(--r-100); }
+    .question-card.skipped  .question-header { background: #fff0ef; }
 
-    .question-number {
-      font-weight: 700;
-      color: #ff0000;
-      font-size: 18px;
+    .q-num-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
-
-    .question-points {
-      background: #f8f9fa;
-      padding: 6px 15px;
-      border-radius: 20px;
-      font-size: 13px;
-      color: #666;
+    .q-bubble {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      border: 2px solid var(--rule);
+      background: var(--white);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Lora', serif;
+      font-size: 14px;
       font-weight: 600;
+      color: var(--ink-3);
+      transition: all 0.25s;
+    }
+    .question-card.answered .q-bubble {
+      background: var(--r-500);
+      border-color: var(--r-500);
+      color: white;
+    }
+    .question-card.skipped .q-bubble {
+      background: var(--r-100);
+      border-color: var(--r-400);
+      border-style: dashed;
+      color: var(--r-500);
+    }
+    .q-meta-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink-2);
+    }
+    .q-meta-sub {
+      font-size: 11px;
+      color: var(--ink-4);
+      font-weight: 400;
     }
 
     .question-status {
-      font-size: 24px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 4px 11px;
+      border-radius: 20px;
     }
-
     .question-status.unanswered {
-      color: #dc3545;
+      background: var(--white);
+      color: var(--ink-4);
+      border: 1.5px solid var(--rule);
+    }
+    .question-status.answered {
+      background: var(--r-500);
+      color: white;
+    }
+    .question-status.skipped-tag {
+      background: var(--r-100);
+      color: var(--r-500);
+      border: 1.5px dashed var(--r-400);
     }
 
-    .question-status.answered {
-      color: #28a745;
-    }
+    /* Card body */
+    .question-body { padding: 22px 22px 18px; }
 
     .question-text {
-      font-size: 17px;
-      line-height: 1.7;
-      color: #333;
-      margin-bottom: 25px;
-      font-weight: 500;
+      font-family: 'Lora', serif;
+      font-size: 16.5px;
+      line-height: 1.72;
+      color: var(--ink);
+      margin-bottom: 20px;
     }
 
-    /* --- Options --- */
-    .options-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
+    /* Question image */
+    .question-image {
+      width: 100%;
+      max-width: 480px;
+      height: auto;
+      border-radius: 10px;
+      border: 1.5px solid var(--rule);
+      margin-bottom: 18px;
+      display: block;
     }
+
+    /* ═══════════════════════════════
+       OPTIONS
+    ═══════════════════════════════ */
+    .options-list { display: flex; flex-direction: column; gap: 9px; }
 
     .option-item {
       display: flex;
       align-items: center;
-      padding: 18px 20px;
-      background: #f8f9fa;
-      border: 2px solid #e9ecef;
+      gap: 12px;
+      padding: 13px 16px;
+      background: var(--r-50);
+      border: 1.5px solid var(--rule);
       border-radius: 10px;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.18s ease;
+      user-select: none;
     }
-
     .option-item:hover {
-      background: #e9ecef;
-      border-color: #ff0000;
+      background: var(--r-100);
+      border-color: var(--r-400);
+      transform: translateX(4px);
     }
-
     .option-item.selected {
-      background: #fff0f0;
-      border-color: #ff0000;
+      background: var(--r-100);
+      border-color: var(--r-500);
+      transform: translateX(4px);
     }
+    .option-item input[type="radio"] { display: none; }
 
-    .option-item input[type="radio"] {
-      width: 20px;
-      height: 20px;
-      margin-right: 15px;
-      cursor: pointer;
-      accent-color: #ff0000;
+    .opt-key {
+      width: 30px; height: 30px; min-width: 30px;
+      border-radius: 7px;
+      border: 1.5px solid var(--rule);
+      background: var(--white);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 800;
+      color: var(--ink-3);
+      font-family: 'Outfit', sans-serif;
+      transition: all 0.18s;
     }
-
+    .option-item:hover .opt-key {
+      background: var(--r-400);
+      border-color: var(--r-400);
+      color: white;
+    }
+    .option-item.selected .opt-key {
+      background: var(--r-500);
+      border-color: var(--r-500);
+      color: white;
+    }
     .option-text {
       flex: 1;
-      font-size: 16px;
-      color: #333;
+      font-size: 14.5px;
+      color: var(--ink-2);
+      line-height: 1.45;
+      transition: color 0.18s;
+    }
+    .option-item.selected .option-text { font-weight: 600; color: var(--r-700); }
+
+    .opt-check {
+      font-size: 15px;
+      color: var(--r-500);
+      opacity: 0;
+      transform: scale(0.5);
+      transition: all 0.18s;
+    }
+    .option-item.selected .opt-check { opacity: 1; transform: scale(1); }
+
+    /* ═══════════════════════════════
+       ACTION BUTTONS
+    ═══════════════════════════════ */
+    .action-buttons {
+      background: var(--white);
+      border: 1.5px solid var(--rule);
+      border-radius: 14px;
+      padding: 18px 22px;
+      margin-top: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: var(--shadow-xs);
+    }
+    .action-hint {
+      font-size: 12.5px;
+      color: var(--ink-4);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .action-hint i { color: var(--r-400); }
+    .btn-row { display: flex; gap: 10px; }
+
+    .btn-custom {
+      padding: 10px 24px;
+      font-size: 13.5px;
+      font-weight: 700;
+      font-family: 'Outfit', sans-serif;
+      border-radius: 9px;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 7px;
+      transition: all 0.2s ease;
+      letter-spacing: 0.2px;
+    }
+    .btn-review {
+      background: var(--white);
+      color: var(--r-500);
+      border: 1.5px solid var(--r-400);
+    }
+    .btn-review:hover {
+      background: var(--r-50);
+      border-color: var(--r-500);
+    }
+    .btn-submit {
+      background: var(--r-500);
+      color: white;
+      border: none;
+      box-shadow: 0 3px 12px rgba(192,57,43,0.30);
+    }
+    .btn-submit:hover {
+      background: var(--r-700);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(192,57,43,0.38);
     }
 
-    .option-item.selected .option-text {
-      font-weight: 600;
-      color: #ff0000;
-    }
-
-    /* --- Essay Input --- */
-    .essay-textarea {
-      width: 100%;
-      padding: 15px;
-      border: 2px solid #e9ecef;
-      border-radius: 10px;
-      font-family: inherit;
-      font-size: 16px;
-      resize: vertical;
-      min-height: 150px;
-      transition: border-color 0.2s ease;
-    }
-
-    .essay-textarea:focus {
-      outline: none;
-      border-color: #ff0000;
-    }
-
-    /* --- Navigation Sidebar --- */
-    .nav-sidebar {
-      background: white;
-      border-radius: 15px;
-      padding: 25px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    /* ═══════════════════════════════
+       SIDEBAR
+    ═══════════════════════════════ */
+    .right-col {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
       position: sticky;
       top: 20px;
     }
 
-    .nav-sidebar h5 {
-      font-weight: 700;
-      margin-bottom: 20px;
-      color: #333;
+    .side-panel {
+      background: var(--white);
+      border: 1.5px solid var(--rule);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: var(--shadow-xs);
     }
+    .side-panel-head {
+      padding: 12px 18px;
+      background: var(--r-50);
+      border-bottom: 1px solid var(--rule);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .side-panel-title {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--ink-3);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .side-panel-title i { color: var(--r-500); }
+    .side-panel-body { padding: 18px; }
+
+    /* ── Timer ── */
+    .timer-face { text-align: center; }
+    .timer-ring-wrap {
+      position: relative;
+      width: 116px; height: 116px;
+      margin: 0 auto 14px;
+    }
+    .tring { transform: rotate(-90deg); }
+    .tring-bg {
+      fill: none;
+      stroke: var(--r-50);
+      stroke-width: 8;
+    }
+    .tring-fill {
+      fill: none;
+      stroke: var(--r-500);
+      stroke-width: 8;
+      stroke-linecap: round;
+      stroke-dasharray: 291;
+      stroke-dashoffset: 0;
+      transition: stroke-dashoffset 1s linear, stroke 0.5s ease;
+    }
+    .timer-inner {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1px;
+    }
+    .timer-card { background: none; }/* reset any legacy */
+    .timer-value {
+      font-family: 'Lora', serif;
+      font-size: 26px;
+      font-weight: 600;
+      color: var(--ink);
+      letter-spacing: -1px;
+      line-height: 1;
+      transition: color 0.4s;
+    }
+    .timer-value.warn { color: var(--r-400); }
+    .timer-value.crit { color: var(--r-500); animation: timerpulse 0.85s ease-in-out infinite; }
+    @keyframes timerpulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+    .timer-tiny-label {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--ink-4);
+    }
+    .timer-message {
+      font-size: 12px;
+      color: var(--ink-3);
+      font-weight: 500;
+      line-height: 1.5;
+      text-align: center;
+    }
+    .timer-message.warn { color: var(--r-400); font-weight: 600; }
+    .timer-message.crit { color: var(--r-500); font-weight: 700; }
+
+    /* ── Question Map ── */
+    .map-legend-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 13px;
+    }
+    .map-leg {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ink-3);
+    }
+    .ml-swatch {
+      width: 11px; height: 11px;
+      border-radius: 3px;
+    }
+    .ml-swatch.done    { background: var(--r-500); }
+    .ml-swatch.skipped { background: var(--r-100); border: 1.5px dashed var(--r-400); }
+    .ml-swatch.blank   { background: var(--r-50); border: 1.5px solid var(--rule); }
 
     .question-nav-grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
-      gap: 10px;
-      margin-bottom: 25px;
+      gap: 7px;
+      margin-bottom: 14px;
     }
-
     .nav-btn {
       aspect-ratio: 1;
-      border: 2px solid #dee2e6;
-      background: white;
+      border: 1.5px solid var(--rule);
+      background: var(--r-50);
       border-radius: 8px;
-      cursor: pointer;
+      font-size: 12px;
       font-weight: 700;
-      color: #666;
-      transition: all 0.2s ease;
-      font-size: 16px;
+      color: var(--ink-3);
+      cursor: pointer;
+      font-family: 'Outfit', sans-serif;
+      transition: all 0.16s ease;
+      position: relative;
     }
-
     .nav-btn:hover {
-      background: #f8f9fa;
-      border-color: #ff0000;
-      transform: translateY(-2px);
+      border-color: var(--r-400);
+      background: var(--r-100);
+      color: var(--r-500);
+      transform: scale(1.1);
     }
-
     .nav-btn.answered {
-      background: #28a745;
+      background: var(--r-500);
+      border-color: var(--r-500);
       color: white;
-      border-color: #28a745;
     }
-
+    .nav-btn.skipped {
+      background: var(--r-100);
+      border: 1.5px dashed var(--r-400);
+      color: var(--r-500);
+    }
     .nav-btn.active {
-      background: #ff0000;
+      background: var(--r-700);
+      border-color: var(--r-700);
       color: white;
-      border-color: #ff0000;
+      box-shadow: 0 2px 8px rgba(169,50,38,0.35);
+    }
+    /* Skipped corner flag */
+    .nav-btn.skipped::after {
+      content: '';
+      position: absolute;
+      top: 2px; right: 2px;
+      border-style: solid;
+      border-width: 0 6px 6px 0;
+      border-color: transparent var(--r-400) transparent transparent;
     }
 
-    .nav-legend {
-      padding-top: 20px;
-      border-top: 1px solid #e9ecef;
+    .map-counts {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      padding-top: 12px;
+      border-top: 1px solid var(--rule);
+      text-align: center;
     }
-
-    .legend-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 12px;
-      font-size: 14px;
-      color: #666;
-    }
-
-    .legend-dot {
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-    }
-
-    .legend-dot.answered {
-      background: #28a745;
-    }
-
-    .legend-dot.unanswered {
-      background: #dc3545;
-    }
-
-    /* --- Action Buttons --- */
-    .action-buttons {
-      background: white;
-      border-radius: 15px;
-      padding: 25px;
-      margin-top: 20px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-      display: flex;
-      justify-content: flex-end;
-      gap: 15px;
-    }
-
-    .btn-custom {
-      padding: 15px 40px;
-      font-size: 16px;
+    .mc-item .mc-n {
+      font-family: 'Lora', serif;
+      font-size: 18px;
       font-weight: 600;
-      border-radius: 10px;
-      border: none;
-      transition: all 0.3s ease;
+      color: var(--r-500);
+      line-height: 1;
+    }
+    .mc-item.mc-skip .mc-n { color: var(--r-400); }
+    .mc-item.mc-left .mc-n { color: var(--ink-3); }
+    .mc-item .mc-l {
+      font-size: 10px;
+      font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+      color: var(--ink-4);
+      margin-top: 3px;
     }
 
-    .btn-review {
-      background: white;
-      color: #ff0000;
-      border: 2px solid #ff0000;
+    /* ── Motivational nudge ── */
+    .motive-panel {
+      background: linear-gradient(135deg, var(--r-50) 0%, var(--white) 100%);
+      border: 1.5px solid var(--rule);
+      border-radius: 14px;
+      padding: 16px 18px;
+      text-align: center;
+      box-shadow: var(--shadow-xs);
+    }
+    .motive-emoji { font-size: 26px; margin-bottom: 8px; line-height: 1; }
+    .motive-text {
+      font-family: 'Lora', serif;
+      font-style: italic;
+      font-size: 13px;
+      color: var(--ink-2);
+      line-height: 1.6;
+    }
+    .motive-score {
+      margin-top: 9px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      color: var(--ink-4);
     }
 
-    .btn-review:hover {
-      background: #f8f9fa;
-    }
-
-    .btn-submit {
-      background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
-      color: white;
-    }
-
-    .btn-submit:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 5px 20px rgba(255, 0, 0, 0.4);
-    }
-
-    /* --- Modal --- */
+    /* ═══════════════════════════════
+       MODAL
+    ═══════════════════════════════ */
     .modal-content {
-      border-radius: 15px;
       border: none;
+      border-radius: 16px;
+      font-family: 'Outfit', sans-serif;
+      box-shadow: 0 24px 60px rgba(192,57,43,0.18);
     }
-
     .modal-header {
-      background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+      background: var(--r-500);
       color: white;
-      border-top-left-radius: 15px;
-      border-top-right-radius: 15px;
+      border-top-left-radius: 16px;
+      border-top-right-radius: 16px;
+      padding: 20px 24px;
+      border-bottom: none;
     }
-
-    .modal-header .btn-close {
-      filter: brightness(0) invert(1);
-    }
-
-    .warning-text {
-      color: #dc3545;
+    .modal-header .btn-close { filter: brightness(0) invert(1); }
+    .modal-title {
+      font-family: 'Lora', serif;
+      font-size: 19px;
       font-weight: 600;
-      margin-top: 15px;
+      display: flex; align-items: center; gap: 9px;
     }
-
-    /* --- Responsive --- */
-    @media (max-width: 992px) {
-      .exam-wrapper {
-        padding: 10px;
-      }
-
-      .timer-value {
-        font-size: 36px;
-      }
-
-      .question-nav-grid {
-        grid-template-columns: repeat(4, 1fr);
-      }
+    .modal-body { padding: 24px; }
+    .modal-tally {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 18px;
     }
-
+    .tally-cell {
+      background: var(--r-50);
+      border: 1.5px solid var(--rule);
+      border-radius: 10px;
+      padding: 14px 10px;
+      text-align: center;
+    }
+    .tally-cell .tc-n {
+      font-family: 'Lora', serif;
+      font-size: 28px;
+      font-weight: 600;
+      line-height: 1;
+      color: var(--ink);
+    }
+    .tally-cell.tc-ans { background: var(--r-100); border-color: var(--r-400); }
+    .tally-cell.tc-ans .tc-n { color: var(--r-500); }
+    .tally-cell.tc-miss { border-style: dashed; }
+    .tally-cell .tc-l {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--ink-4);
+      margin-top: 4px;
+    }
+    .modal-note {
+      font-size: 13px;
+      color: var(--ink-3);
+      background: var(--r-50);
+      border-left: 3px solid var(--r-500);
+      border-radius: 0 8px 8px 0;
+      padding: 11px 14px;
+      line-height: 1.55;
+    }
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--rule);
+      display: flex; gap: 10px; justify-content: flex-end;
+    }
     .btn-disabled {
-  background-color: #ccc;
-  color: #666;
-  cursor: not-allowed;
-}
+      background-color: #ccc;
+      color: #666;
+      cursor: not-allowed;
+    }
 
-
+    /* ═══════════════════════════════
+       RESPONSIVE
+    ═══════════════════════════════ */
+    @media (max-width: 992px) {
+      .exam-grid { grid-template-columns: 1fr; }
+      .right-col { position: relative; top: 0; }
+      .action-hint { display: none; }
+      .timer-value { font-size: 22px; }
+      .question-nav-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+    @media (max-width: 576px) {
+      .exam-wrapper { padding: 14px 12px 60px; }
+    }
   </style>
-
 </head>
+
 <body>
-  <!-- Navbar -->
+
+  <!-- ══════════════════════════════
+       NAVBAR  (original red — unchanged)
+  ══════════════════════════════ -->
   <nav class="navbar navbar-expand-lg navbar-light navbar-custom">
     <div class="container-fluid">
-      <a class="navbar-brand ms-2" href="#"><i class="fas fa-graduation-cap me-2"></i>Online Entrance Exam System</a>
+      <a class="navbar-brand ms-2" href="#">
+        <div class="brand-icon"><i class="fas fa-graduation-cap"></i></div>
+        Online Entrance Exam System
+      </a>
       <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav ms-auto">
+        <ul class="navbar-nav ms-auto me-2">
           <li class="nav-item">
-            <span class="navbar-text text-white me-3">
-              <i class="fas fa-user-circle me-2"></i>Welcome, Student!
-            </span>
+            <div class="nav-student-tag">
+              <div class="student-avatar">{{ student.name[0] | upper if student and student.name else 'S' }}</div>
+              Welcome, {{ student.name if student and student.name else 'Student' }}!
+          </li>
+          <li class="nav-item ms-2">
+            <span class="nav-live-badge">Live Exam</span>
           </li>
         </ul>
       </div>
     </div>
   </nav>
 
-  <!-- Main Content -->
-
+  <!-- ══════════════════════════════
+       MAIN CONTENT
+  ══════════════════════════════ -->
   <div class="exam-wrapper">
-    <div class="row mt-4">
-      <!-- Left Column: Questions -->
-      <div class="col-lg-8">
-        <!-- Progress Bar -->
-        <div class="progress-section">
-          <div class="progress">
-            <div class="progress-bar" id="progressBar" role="progressbar" style="width: 0%"></div>
+    <div class="exam-grid">
+
+      <!-- ── LEFT COLUMN ── -->
+      <div class="left-col">
+
+
+        <div class="questions-container" id="questionsContainer"></div>
+
+        <!-- Action buttons -->
+        <div class="action-buttons">
+          <div class="action-hint">
+            <i class="fas fa-triangle-exclamation"></i>
+            Dashed red = skipped question. Tap Review to jump to it.
           </div>
-          <div class="progress-text">
-            <span id="answeredCount">0</span> of <span id="totalCount">0</span> questions answered
+          <div class="btn-row">
+            <button class="btn-custom btn-review" onclick="reviewAnswers()">
+              <i class="fas fa-magnifying-glass"></i> Review
+            </button>
+            <button class="btn-custom btn-submit" onclick="showSubmitModal()">
+              <i class="fas fa-paper-plane"></i> Submit Exam
+            </button>
           </div>
         </div>
 
+      </div><!-- /left-col -->
 
-    <!-- Questions Container -->
-    <div class="questions-container" id="questionsContainer"></div>
+      <!-- ── RIGHT COLUMN ── -->
+      <div class="right-col">
 
-    <!-- Action Buttons -->
-    <div class="action-buttons">
-      <button class="btn btn-custom btn-review" onclick="reviewAnswers()"><i class="fas fa-eye me-2"></i>Review Answers</button>
-      <button class="btn btn-custom btn-submit" onclick="showSubmitModal()"><i class="fas fa-paper-plane me-2"></i>Submit Exam</button>
-    </div>
-  </div>
+        <!-- Timer -->
+        <div class="side-panel">
+          <div class="side-panel-head">
+            <span class="side-panel-title"><i class="fas fa-hourglass-half"></i> Time Remaining</span>
+          </div>
+          <div class="side-panel-body">
+            <div class="timer-face">
+              <div class="timer-ring-wrap">
+                <svg class="tring" width="116" height="116" viewBox="0 0 116 116">
+                  <circle class="tring-bg" cx="58" cy="58" r="46"/>
+                  <circle class="tring-fill" id="timerRing" cx="58" cy="58" r="46"/>
+                </svg>
+                <div class="timer-inner">
+                  <div class="timer-value" id="timerDisplay">60:00</div>
+                  <div class="timer-tiny-label">remaining</div>
+                </div>
+              </div>
+              <div class="timer-message" id="timerMsg">Stay focused — you're doing great.</div>
+            </div>
+          </div>
+        </div>
 
-  <!-- Right Column: Timer & Navigation -->
-  <div class="col-lg-4">
-    <div class="timer-card mb-3">
-      <div class="timer-label"><i class="fas fa-clock me-2"></i>Time Remaining</div>
-      <div class="timer-value" id="timerDisplay">60:00</div>
-    </div>
+        <!-- Question navigator -->
+        <div class="side-panel">
+          <div class="side-panel-head">
+            <span class="side-panel-title"><i class="fas fa-map"></i> Question Map</span>
+          </div>
+          <div class="side-panel-body">
+            <div class="map-legend-strip">
+              <span class="map-leg"><span class="ml-swatch done"></span> Answered</span>
+              <span class="map-leg"><span class="ml-swatch skipped"></span> Skipped</span>
+              <span class="map-leg"><span class="ml-swatch blank"></span> Pending</span>
+            </div>
+            <div class="question-nav-grid" id="questionNavGrid"></div>
+            <div class="map-counts">
+              <div class="mc-item">
+                <div class="mc-n" id="mapDone">0</div>
+                <div class="mc-l">Done</div>
+              </div>
+              <div class="mc-item mc-skip">
+                <div class="mc-n" id="mapSkipped">0</div>
+                <div class="mc-l">Skipped</div>
+              </div>
+              <div class="mc-item mc-left">
+                <div class="mc-n" id="mapLeft">0</div>
+                <div class="mc-l">Left</div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-    <div class="nav-sidebar">
-      <h5><i class="fas fa-list-ol me-2"></i>Question Navigator</h5>
-      <div class="question-nav-grid" id="questionNavGrid"></div>
-      <div class="nav-legend">
-        <div class="legend-item"><span class="legend-dot answered"></span><span>Answered</span></div>
-        <div class="legend-item"><span class="legend-dot unanswered"></span><span>Unanswered</span></div>
-      </div>
-    </div>
-  </div>
-</div>
+        <!-- Motivation nudge -->
+
+      </div><!-- /right-col -->
+
+    </div><!-- /exam-grid -->
+  </div><!-- /exam-wrapper -->
 
 
-  </div>
-
-  <!-- Submit Modal -->
-
+  <!-- ══════════════════════════════
+       SUBMIT MODAL
+  ══════════════════════════════ -->
   <div class="modal fade" id="submitModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title"><i class="fas fa-exclamation-triangle me-2"></i>Submit Exam?</h5>
+          <h5 class="modal-title">
+            <i class="fas fa-paper-plane"></i> Ready to Submit?
+          </h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
-          <p class="mb-2">Are you sure you want to submit your exam?</p>
-          <p class="mb-0">You have answered <strong><span id="modalAnsweredCount">0</span></strong> out of <strong><span id="modalTotalCount">0</span></strong> questions.</p>
-          <p class="warning-text"><i class="fas fa-info-circle me-2"></i>You cannot change your answers after submission!</p>
+          <div class="modal-tally">
+            <div class="tally-cell">
+              <div class="tc-n" id="modalTotalCount">0</div>
+              <div class="tc-l">Total</div>
+            </div>
+            <div class="tally-cell tc-ans">
+              <div class="tc-n" id="modalAnsweredCount">0</div>
+              <div class="tc-l">Answered</div>
+            </div>
+            <div class="tally-cell tc-miss">
+              <div class="tc-n" id="modalMissedCount">0</div>
+              <div class="tc-l">Unanswered</div>
+            </div>
+          </div>
+          <div class="modal-note">
+            Once submitted, your answers are final and cannot be changed. Take a moment to review if needed!
+          </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-2"></i>Cancel</button>
-          <button type="button" class="btn btn-danger" onclick="submitExam()"><i class="fas fa-check me-2"></i>Confirm Submit</button>
+          <button type="button" class="btn-custom btn-review" data-bs-dismiss="modal">
+            <i class="fas fa-arrow-left"></i> Keep Reviewing
+          </button>
+          <button type="button" class="btn-custom btn-submit" onclick="submitExam()">
+            <i class="fas fa-check"></i> Confirm Submit
+          </button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Bootstrap JS -->
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
   <script>
-    // --- Exam Data from Flask ---
-    const examData = {
-      title: "Main Entrance Exam",
-      duration: {{ duration if duration else 60 }},
-      questions: [
-        {% for q in questions %}
-        {
-          id: {{ q.id }},
-          text: {{ q.question_text|tojson }},
-          options: [
-            {{ {'id': 1, 'text': q.choice_a}|tojson }},
-            {{ {'id': 2, 'text': q.choice_b}|tojson }},
-            {{ {'id': 3, 'text': q.choice_c}|tojson }},
-            {{ {'id': 4, 'text': q.choice_d}|tojson }}
-          ]
-        }{% if not loop.last %},{% endif %}
-        {% endfor %}
-      ]
-    };
+    // ── Flask variables (keep as-is for production) ──
+    const examData    = {{ questions | tojson | safe }};
+    let timeRemaining = {{ duration if duration else 60 }} * 60;
 
-    // --- State ---
-    let answeredQuestions = new Set();
-    let studentAnswers = {};
-    let timeRemaining = examData.duration * 60;
+    // ── State ──
+    const TOTAL_TIME       = timeRemaining;
+    const RING_CIRCUM      = 2 * Math.PI * 46; // r = 46
+    let answeredQuestions  = new Set();
+    let skippedQuestions   = new Set();
+    let viewedQuestions    = new Set();
+    let studentAnswers     = {};
     let timerInterval;
 
-    window.addEventListener('DOMContentLoaded', initializeExam);
+    const MOTIVES = [
+      { upTo: 0,   emoji: '✨', text: 'Answer your first question and start building your score!' },
+      { upTo: 2,   emoji: '🚀', text: "Great start! Keep that momentum going." },
+      { upTo: 4,   emoji: '🔥', text: "You're on a roll — don't stop now!" },
+      { upTo: 6,   emoji: '⚡', text: "Past halfway! You're doing brilliantly." },
+      { upTo: 7,   emoji: '🏅', text: "Almost there — one final push!" },
+      { upTo: 9999,emoji: '🏆', text: "All questions answered! You're ready to shine." }
+    ];
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initializeExam();
+      checkExamStatus();
+    });
 
     function initializeExam() {
       renderQuestions();
       renderNavigation();
       updateProgress();
       startTimer();
+      initScrollObserver();
     }
 
+    /* ── RENDER QUESTIONS ───────────────── */
     function renderQuestions() {
       const container = document.getElementById('questionsContainer');
-      document.getElementById('totalCount').textContent = examData.questions.length;
+      const n = examData.length;
+      document.getElementById('modalTotalCount').textContent = n;
+      document.getElementById('mapLeft').textContent         = n;
 
-      container.innerHTML = examData.questions.map((q,index)=>`
-        <div class="question-card" id="question-${q.id}" data-question-id="${q.id}">
+      container.innerHTML = examData.map((q, index) => {
+
+        /*
+         * ── IMAGE SUPPORT ────────────────────────────────────────────────
+         * Each question object can carry an optional `image_filename` field.
+         * When present, the image is rendered between the question text and
+         * the answer choices.
+         *
+         * To add an image to a question in Flask, make sure your query/model
+         * returns `image_filename` on the question object, e.g.:
+         *   { id: 3, question_text: "...", image_filename: "q3_diagram.png", ... }
+         *
+         * Images must be placed in:  static/question_images/<image_filename>
+         *
+         * The rendered <img> uses the `.question-image` CSS class which
+         * already handles sizing, rounded corners, and spacing.
+         * ────────────────────────────────────────────────────────────────
+         */
+        const imageBlock = q.image_filename
+          ? `<img
+               class="question-image"
+               src="/static/question_images/${q.image_filename}"
+               alt="Question ${index + 1} image"
+             />`
+          : '';
+
+        return `
+        <div class="question-card" id="question-${q.id}" style="animation-delay:${index * 0.05}s">
           <div class="question-header">
-            <span class="question-number">Question ${index+1}</span>
-            <span class="question-status unanswered" id="status-${q.id}">●</span>
+            <div class="q-num-wrap">
+              <div class="q-bubble" id="qbubble-${q.id}">${index + 1}</div>
+              <div>
+                <div class="q-meta-label">Question ${index + 1} <span style="font-weight:400;color:var(--ink-4)">of ${n}</span></div>
+                <div class="q-meta-sub">Multiple Choice</div>
+              </div>
+            </div>
+            <span class="question-status unanswered" id="status-${q.id}">
+              <i class="fas fa-circle" style="font-size:7px"></i> Not answered
+            </span>
           </div>
-          <div class="question-text">${q.text}</div>
-          <div class="options-list">
-            ${q.options.map(opt=>`
-              <label class="option-item" id="option-${opt.id}-${q.id}">
-                <input type="radio" name="question-${q.id}" value="${opt.id}" onchange="saveAnswer(${q.id}, ${opt.id})">
-                <span class="option-text">${opt.text}</span>
-              </label>
-            `).join('')}
+
+          <div class="question-body">
+            <div class="question-text">${q.question_text}</div>
+
+            ${imageBlock}
+
+            <div class="options-list">
+              ${['choice_a','choice_b','choice_c','choice_d'].map(choiceKey => {
+                if (!q[choiceKey]) return '';
+                const label = choiceKey.split('_')[1].toUpperCase();
+                return `
+                  <label class="option-item" id="option-${label}-${q.id}">
+                    <input type="radio" name="question-${q.id}" value="${label}"
+                           onchange="saveAnswer(${q.id}, '${label}')">
+                    <div class="opt-key">${label}</div>
+                    <span class="option-text">${q[choiceKey]}</span>
+                    <span class="opt-check"><i class="fas fa-check-circle"></i></span>
+                  </label>`;
+              }).join('')}
+            </div>
           </div>
-        </div>
-      `).join('');
+        </div>`;
+      }).join('');
     }
 
+    /* ── RENDER NAVIGATION ──────────────── */
     function renderNavigation() {
-      const navGrid = document.getElementById('questionNavGrid');
-      navGrid.innerHTML = examData.questions.map((q,index)=>`
-        <button class="nav-btn" id="nav-${q.id}" onclick="scrollToQuestion(${q.id})">${index+1}</button>
-      `).join('');
+      document.getElementById('questionNavGrid').innerHTML =
+        examData.map((q, i) =>
+          `<button class="nav-btn" id="nav-${q.id}" onclick="scrollToQuestion(${q.id})" title="Question ${i+1}">${i+1}</button>`
+        ).join('');
     }
 
+    /* ── SAVE ANSWER ────────────────────── */
     function saveAnswer(qid, optId) {
       studentAnswers[qid] = optId;
-      document.querySelectorAll(`#question-${qid} .option-item`).forEach(el=>el.classList.remove('selected'));
+      document.querySelectorAll(`#question-${qid} .option-item`).forEach(el => el.classList.remove('selected'));
       document.getElementById(`option-${optId}-${qid}`).classList.add('selected');
       markAsAnswered(qid);
       updateProgress();
     }
 
-    function markAsAnswered(qid){
+    function markAsAnswered(qid) {
       answeredQuestions.add(qid);
-      document.getElementById(`status-${qid}`).classList.replace('unanswered','answered');
-      document.getElementById(`question-${qid}`).classList.add('answered');
-      document.getElementById(`nav-${qid}`).classList.add('answered');
+      skippedQuestions.delete(qid);
+
+      const card   = document.getElementById(`question-${qid}`);
+      const status = document.getElementById(`status-${qid}`);
+      const nav    = document.getElementById(`nav-${qid}`);
+
+      card.classList.remove('skipped');
+      card.classList.add('answered');
+      status.className = 'question-status answered';
+      status.innerHTML = '<i class="fas fa-check" style="font-size:8px"></i> Answered';
+      nav.classList.remove('skipped', 'active');
+      nav.classList.add('answered');
     }
 
-    function updateProgress(){
-      const answered=answeredQuestions.size;
-      const total=examData.questions.length;
-      document.getElementById('progressBar').style.width=(answered/total*100)+'%';
-      document.getElementById('answeredCount').textContent=answered;
-      document.getElementById('modalAnsweredCount').textContent=answered;
-      document.getElementById('modalTotalCount').textContent=total;
+    /* ── SCROLL OBSERVER (skip detection) ─ */
+    function initScrollObserver() {
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          const id = parseInt(entry.target.dataset.qid);
+          if (entry.isIntersecting) {
+            viewedQuestions.add(id);
+            // Highlight current in map
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            const nb = document.getElementById(`nav-${id}`);
+            if (nb && !nb.classList.contains('answered')) nb.classList.add('active');
+          } else if (viewedQuestions.has(id) && !answeredQuestions.has(id)) {
+            markAsSkipped(id);
+          }
+        });
+      }, { threshold: 0.2 });
+
+      examData.forEach(q => {
+        const el = document.getElementById(`question-${q.id}`);
+        if (el) { el.dataset.qid = q.id; observer.observe(el); }
+      });
     }
 
-    function scrollToQuestion(qid){
-      const el=document.getElementById(`question-${qid}`);
-      el.scrollIntoView({behavior:'smooth', block:'center'});
-      el.style.backgroundColor='#fff3cd';
-      setTimeout(()=>el.style.backgroundColor='',1000);
-      document.querySelectorAll('.nav-btn').forEach(btn=>btn.classList.remove('active'));
+    function markAsSkipped(qid) {
+      if (answeredQuestions.has(qid)) return;
+      skippedQuestions.add(qid);
+      const card   = document.getElementById(`question-${qid}`);
+      const status = document.getElementById(`status-${qid}`);
+      const nav    = document.getElementById(`nav-${qid}`);
+      if (!card.classList.contains('answered')) {
+        card.classList.add('skipped');
+        status.className = 'question-status skipped-tag';
+        status.innerHTML = '<i class="fas fa-triangle-exclamation" style="font-size:8px"></i> Skipped';
+        nav.classList.remove('active');
+        nav.classList.add('skipped');
+      }
+      updateProgress();
+    }
+
+    /* ── PROGRESS ───────────────────────── */
+    function updateProgress() {
+      const ans   = answeredQuestions.size;
+      const skip  = skippedQuestions.size;
+      const total = examData.length;
+
+      document.getElementById('modalAnsweredCount').textContent = ans;
+      document.getElementById('modalMissedCount').textContent   = total - ans;
+
+      // Map counts
+      document.getElementById('mapDone').textContent    = ans;
+      document.getElementById('mapSkipped').textContent = skip;
+      document.getElementById('mapLeft').textContent    = Math.max(0, total - ans - skip);
+
+      // Motivation
+      const m = MOTIVES.find(x => ans <= x.upTo) || MOTIVES[MOTIVES.length - 1];
+      document.getElementById('motiveEmoji').textContent = m.emoji;
+      document.getElementById('motiveText').textContent  = m.text;
+      if (ans > 0) document.getElementById('motiveScore').textContent = `${ans} / ${total} complete`;
+    }
+
+    /* ── SCROLL TO ──────────────────────── */
+    function scrollToQuestion(qid) {
+      const el = document.getElementById(`question-${qid}`);
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.style.outline = '2px solid var(--r-500)';
+      el.style.outlineOffset = '3px';
+      setTimeout(() => { el.style.outline = ''; el.style.outlineOffset = ''; }, 1400);
+      document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
       document.getElementById(`nav-${qid}`).classList.add('active');
     }
 
-    function startTimer(){
+    /* ── TIMER ──────────────────────────── */
+    function startTimer() {
       updateTimerDisplay();
-      timerInterval=setInterval(()=>{
+      timerInterval = setInterval(() => {
         timeRemaining--;
         updateTimerDisplay();
-        if(timeRemaining===300){
-          document.querySelector('.timer-card').classList.add('timer-warning');
-          alert('⚠️ Only 5 minutes remaining!');
-        }
-        if(timeRemaining<=0){
-          clearInterval(timerInterval);
-          alert('⏰ Time is up! Submitting...');
-          submitExam();
-        }
-      },1000);
+        if (timeRemaining === 300) alert('⏰ Only 5 minutes remaining! Start wrapping up.');
+        if (timeRemaining <= 0)   { clearInterval(timerInterval); submitExam(); }
+      }, 1000);
     }
 
-    function updateTimerDisplay(){
-      const min=Math.floor(timeRemaining/60);
-      const sec=timeRemaining%60;
-      document.getElementById('timerDisplay').textContent=`${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
-      if(timeRemaining<300) document.getElementById('timerDisplay').style.color='#ffeb3b';
-    }
+    function updateTimerDisplay() {
+      const m      = Math.floor(timeRemaining / 60);
+      const s      = timeRemaining % 60;
+      const ratio  = timeRemaining / TOTAL_TIME;
+      const offset = RING_CIRCUM * (1 - ratio);
 
-    function reviewAnswers(){
-      const unanswered=examData.questions.length - answeredQuestions.size;
-      if(unanswered>0){
-        alert(`⚠️ You have ${unanswered} unanswered question(s).`);
-        const firstUnanswered=examData.questions.find(q=>!answeredQuestions.has(q.id));
-        if(firstUnanswered) scrollToQuestion(firstUnanswered.id);
-      } else alert('✅ All questions answered!');
-    }
+      document.getElementById('timerDisplay').textContent =
+        `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
 
-    function showSubmitModal() {
-    if (confirm("Are you sure you want to submit the exam? Once submitted, you cannot change your answers.")) {
-      submitExam();
-    }
-  }
+      const ring = document.getElementById('timerRing');
+      ring.style.strokeDasharray  = RING_CIRCUM;
+      ring.style.strokeDashoffset = offset;
 
-  // Submit the exam
-  function submitExam() {
-    fetch("/student/submit_exam", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
+      const dig = document.getElementById('timerDisplay');
+      const msg = document.getElementById('timerMsg');
+
+      if (timeRemaining <= 60) {
+        dig.className  = 'timer-value crit';
+        msg.className  = 'timer-message crit';
+        msg.textContent = 'Final minute — submit now!';
+        ring.style.stroke = 'var(--r-500)';
+      } else if (timeRemaining <= 300) {
+        dig.className  = 'timer-value warn';
+        msg.className  = 'timer-message warn';
+        msg.textContent = 'Under 5 minutes — wrap up!';
+        ring.style.stroke = 'var(--r-400)';
+      } else if (timeRemaining <= TOTAL_TIME / 2) {
+        msg.textContent = "Halfway through time — keep going!";
       }
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        // Redirect to student dashboard after successful submission
-        window.location.href = "{{ url_for('student_dashboard') }}"; 
+    }
+
+    /* ── REVIEW ─────────────────────────── */
+    function reviewAnswers() {
+      const unanswered = examData.filter(q => !answeredQuestions.has(q.id));
+      if (unanswered.length) {
+        alert(`📋 You have ${unanswered.length} unanswered question(s). Jumping to the first one!`);
+        scrollToQuestion(unanswered[0].id);
       } else {
-        alert("Error submitting exam: " + (data.error || "Unknown error"));
+        alert('🎉 All questions answered! You\'re ready to submit.');
       }
-    })
-    .catch(err => {
-      console.error("Error submitting exam:", err);
-      alert("An error occurred while submitting the exam. Please try again.");
+    }
+
+    /* ── SUBMIT ─────────────────────────── */
+    function showSubmitModal() {
+      new bootstrap.Modal(document.getElementById('submitModal')).show();
+    }
+
+  function submitExam() {
+  clearInterval(timerInterval);
+
+  fetch('/student/submit_exam', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ answers: studentAnswers })
+  })
+  .then(async res => {
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || 'Failed to submit exam');
+    }
+    return data;
+  })
+  .then(data => {
+    window.location.href = `/student/result?result_id=${data.exam_result_id}`;
+  })
+  .catch(err => {
+    console.error(err);
+    alert("Failed to submit exam: " + err.message);
+  });
+}
+
+    /* ── EXAM STATUS CHECK ──────────────── */
+    function checkExamStatus() {
+      const status  = "{{ student.status }}";
+      const examBtn = document.getElementById("mainExamBtn");
+      if (examBtn && status === "completed") {
+        examBtn.disabled = true;
+        examBtn.innerText = "Already Completed";
+        examBtn.classList.add("btn-disabled");
+      }
+    }
+
+    /* ── GUARDS ─────────────────────────── */
+    window.addEventListener('beforeunload', function(e) {
+      if (timeRemaining > 0) {
+        e.preventDefault();
+        e.returnValue = '⚠ You have an exam in progress! Are you sure you want to leave?';
+      }
     });
-  }
 
-   window.addEventListener('beforeunload', function(e){
-  if(timeRemaining > 0){
-    e.preventDefault();
-    e.returnValue = '⚠ You have an exam in progress! Are you sure you want to leave?';
-  }
-});
-
-// check exam status
-
-function checkExamStatus() {
-    const status = "{{ student.status }}";  // Pass the status from Flask template
-    const examBtn = document.getElementById("mainExamBtn");
-
-    if (status === "completed") {
-      examBtn.disabled = true;
-      examBtn.innerText = "Already Completed";
-      examBtn.classList.add("btn-disabled"); // optional: add a CSS class to style it
-    }
-  }
-
-  // Run on page load
-  window.addEventListener("DOMContentLoaded", checkExamStatus);
-
-// Disable back button
-window.history.pushState(null, '', window.location.href);
-window.onpopstate = function () {
     window.history.pushState(null, '', window.location.href);
-    alert('⚠ You cannot go back while taking the exam!');
-};
+    window.onpopstate = function() {
+      window.history.pushState(null, '', window.location.href);
+      alert('⚠ You cannot go back while taking the exam!');
+    };
 
-// Optional: Warn if they switch tabs (visibility change)
-document.addEventListener('visibilitychange', function() {
-    if (document.hidden && timeRemaining > 0) {
+    document.addEventListener('visibilitychange', function() {
+      if (document.hidden && timeRemaining > 0) {
         alert('⚠ You switched tabs while taking the exam. Stay focused!');
-    }
-});
+      }
+    });
   </script>
 
 </body>

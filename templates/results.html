@@ -1,239 +1,184 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Exam Results | Entrance Exam System</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-    <style>
-        .navbar-custom {
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exam Results | Guided Path</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+
+  <style>
+    body {
+      background: #f8f9fa;
+      min-height: 100vh;
+    }
+
+    .navbar-custom {
       background-color: #ff0000 !important;
       color: white;
     }
-    .navbar-custom .nav-link, 
+
+    .navbar-custom .nav-link,
     .navbar-custom .navbar-brand,
     .navbar-custom .dropdown-toggle {
       color: white !important;
-    } 
+    }
 
-        .dropdown-white .dropdown-toggle,
-        .dropdown-white .dropdown-item {
-            color: #ffffff !important;
-            background-color: transparent !important;
-        }
+    .status-badge {
+      display: inline-block;
+      padding: 0.35rem 0.75rem;
+      border-radius: 15px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: white;
+    }
 
-        .status-badge {
-            display: inline-block;
-            padding: 0.35rem 0.75rem;
-            border-radius: 15px;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
+    .status-not-started { background-color: #6c757d; }
+    .status-ongoing { background-color: #0dcaf0; color: #000; }
+    .status-completed { background-color: #28a745; }
 
-        .status-not-started {
-            background-color: #6c757d;
-            color: white;
-        }
+    .table-hover tbody tr {
+      transition: all 0.2s;
+    }
 
-        .status-ongoing {
-            background-color: #0dcaf0;
-            color: #000;
-        }
+    .table-hover tbody tr:hover {
+      background-color: #f8f9fa;
+      transform: scale(1.005);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+    }
 
-        .status-completed {
-            background-color: #28a745;
-            color: white;
-        }
+    .stats-card {
+      border-left: 4px solid;
+      transition: transform 0.2s;
+    }
 
-        .table-hover tbody tr {
-            transition: all 0.2s;
-        }
+    .stats-card:hover {
+      transform: translateY(-4px);
+    }
 
-        .table-hover tbody tr:hover {
-            background-color: #f8f9fa;
-            transform: scale(1.01);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
+    .stats-card.not-started { border-left-color: #6c757d; }
+    .stats-card.ongoing { border-left-color: #0dcaf0; }
+    .stats-card.completed { border-left-color: #28a745; }
 
-        .search-box {
-            max-width: 400px;
-        }
+    #resultsListView,
+    #individualResultView {
+      display: none;
+    }
 
-        .filter-buttons .btn {
-            margin: 0 0.25rem;
-        }
+    #resultsListView.active,
+    #individualResultView.active {
+      display: block;
+    }
 
-        .stats-card {
-            border-left: 4px solid;
-            transition: transform 0.2s;
-        }
+    .result-header {
+      background: linear-gradient(135deg, #b91c1c 0%, #7f1d1d 100%);
+      color: white;
+      padding: 2rem;
+      border-radius: 14px;
+      margin-bottom: 2rem;
+    }
 
-        .stats-card:hover {
-            transform: translateY(-5px);
-        }
+    .score-circle {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      font-weight: 800;
+      color: #b91c1c;
+      margin: 0 auto;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
 
-        .stats-card.not-started {
-            border-left-color: #6c757d;
-        }
+    .recommendation-card {
+      border-left: 5px solid #b91c1c;
+    }
 
-        .stats-card.ongoing {
-            border-left-color: #0dcaf0;
-        }
+    .chart-container {
+      position: relative;
+      height: 360px;
+      margin: 1rem 0 2rem;
+    }
 
-        .stats-card.completed {
-            border-left-color: #28a745;
-        }
+    .subject-card {
+      border-left: 4px solid #b91c1c;
+      transition: transform 0.2s;
+    }
 
-        .auto-refresh-indicator {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: white;
-            padding: 10px 15px;
-            border-radius: 25px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            font-size: 0.85rem;
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-        }
+    .subject-card:hover {
+      transform: translateX(4px);
+    }
 
-        .refresh-icon {
-            color: #28a745;
-            animation: spin 2s linear infinite;
-        }
+    .btn-custom {
+      padding: 0.75rem 2rem;
+      font-size: 1rem;
+      border-radius: 25px;
+      transition: all 0.2s;
+    }
 
-        .refresh-icon.paused {
-            animation: none;
-            color: #6c757d;
-        }
+    .btn-custom:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+    .auto-refresh-indicator {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: white;
+      padding: 10px 15px;
+      border-radius: 25px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+      font-size: 0.85rem;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-        .last-update-time {
-            color: #6c757d;
-            font-size: 0.75rem;
-        }
+    .refresh-icon {
+      color: #28a745;
+      animation: spin 2s linear infinite;
+    }
 
-        /* Individual Result View Styles */
-        .result-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 2rem;
-            border-radius: 10px;
-            margin-bottom: 2rem;
-        }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
 
-        .score-circle {
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            background: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: #667eea;
-            margin: 0 auto;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
+    @media print {
+      .navbar,
+      .action-buttons,
+      .auto-refresh-indicator,
+      #resultsListView,
+      .back-button {
+        display: none !important;
+      }
 
-        .subject-card {
-            border-left: 4px solid #667eea;
-            transition: transform 0.2s;
-        }
+      #individualResultView {
+        display: block !important;
+      }
 
-        .subject-card:hover {
-            transform: translateX(5px);
-        }
-
-        .progress-bar-custom {
-            height: 25px;
-            font-size: 0.9rem;
-        }
-
-        .remark-excellent {
-            color: #28a745;
-            font-weight: 600;
-        }
-
-        .remark-good {
-            color: #17a2b8;
-            font-weight: 600;
-        }
-
-        .remark-average {
-            color: #ffc107;
-            font-weight: 600;
-        }
-
-        .remark-needs-improvement {
-            color: #dc3545;
-            font-weight: 600;
-        }
-
-        .chart-container {
-            position: relative;
-            height: 400px;
-            margin: 2rem 0;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin-top: 2rem;
-        }
-
-        .btn-custom {
-            padding: 0.75rem 2rem;
-            font-size: 1rem;
-            border-radius: 25px;
-            transition: all 0.3s;
-        }
-
-        .btn-custom:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-
-        #resultsListView, #individualResultView {
-            display: none;
-        }
-
-        #resultsListView.active, #individualResultView.active {
-            display: block;
-        }
-
-        @media print {
-            .navbar, .action-buttons, .auto-refresh-indicator, #resultsListView {
-                display: none;
-            }
-            #individualResultView {
-                display: block !important;
-            }
-        }
-    </style>
+      body {
+        background: white !important;
+      }
+    }
+  </style>
 </head>
-<body class="bg-light">
-   <nav class="navbar navbar-expand-lg navbar-light navbar-custom">
+
+<body>
+<nav class="navbar navbar-expand-lg navbar-light navbar-custom">
   <div class="container-fluid">
-    <a class="navbar-brand ms-2" href="{{ url_for('dashboard') }}">
-      Online Entrance Exam System
-    </a>
+    <a class="navbar-brand ms-2" href="{{ url_for('dashboard') }}">Online Entrance Exam System</a>
 
     <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav d-flex flex-row gap-5 mx-auto"> <!-- Increased gap from 4 → 5 -->
+      <ul class="navbar-nav d-flex flex-row gap-5 mx-auto">
         <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard') }}"><i class="fa fa-home"></i> Home</a></li>
         <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_enrollees') }}"><i class="fa fa-user-tie"></i> Enrollees</a></li>
         <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_exam_set') }}"><i class="fa fa-th-list"></i> Exam Set</a></li>
@@ -252,239 +197,578 @@
   </div>
 </nav>
 
-    <!-- RESULTS LIST VIEW -->
-    <div id="resultsListView" class="active">
-        <div class="container py-4">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2><i class="fas fa-chart-bar"></i> Exam Results & Status</h2>
-                <button class="btn btn-outline-primary" onclick="exportToExcel()">
-                    <i class="fas fa-file-excel"></i> Export to Excel
-                </button>
-            </div>
+<div id="resultsListView" class="active">
+  <div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2><i class="fas fa-chart-bar"></i> Exam Results & Status</h2>
+      <button class="btn btn-outline-primary" onclick="exportToCSV()">
+        <i class="fas fa-file-excel"></i> Export CSV
+      </button>
+    </div>
 
-            <!-- Statistics Cards -->
-            <div class="row g-3 mb-4">
-                <div class="col-md-4">
-                    <div class="card shadow-sm stats-card not-started">
-                        <div class="card-body text-center">
-                            <h6 class="text-muted">Not Started</h6>
-                            <h2 class="fw-bold" id="notStartedCount">0</h2>
-                            <small class="text-muted">Students haven't taken exam yet</small>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card shadow-sm stats-card ongoing">
-                        <div class="card-body text-center">
-                            <h6 class="text-muted">Ongoing</h6>
-                            <h2 class="fw-bold text-info" id="ongoingCount">0</h2>
-                            <small class="text-muted">Currently taking the exam</small>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card shadow-sm stats-card completed">
-                        <div class="card-body text-center">
-                            <h6 class="text-muted">Completed</h6>
-                            <h2 class="fw-bold text-success" id="completedCount">0</h2>
-                            <small class="text-muted">Finished the exam</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Search and Filter -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-md-6">
-                            <div class="input-group search-box">
-                                <span class="input-group-text"><i class="fas fa-search"></i></span>
-                                <input type="text" class="form-control" id="searchInput" placeholder="Search by name or reference code...">
-                            </div>
-                        </div>
-                        <div class="col-md-6 text-end">
-                            <div class="filter-buttons">
-                                <button class="btn btn-sm btn-outline-secondary active" onclick="filterResults('all')">All</button>
-                                <button class="btn btn-sm btn-outline-secondary" onclick="filterResults('not-started')">Not Started</button>
-                                <button class="btn btn-sm btn-outline-info" onclick="filterResults('ongoing')">Ongoing</button>
-                                <button class="btn btn-sm btn-outline-success" onclick="filterResults('completed')">Completed</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Results Table -->
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>#</th>
-                                    <th>Reference Code</th>
-                                    <th>Student Name</th>
-                                    <th>Date Registered</th>
-                                    <th>Date Taken</th>
-                                    <th>Status</th>
-                                    <th>Score</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="resultsTableBody">
-                                <tr>
-                                    <td colspan="8" class="text-center">Loading students data...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+    <div class="row g-3 mb-4">
+      <div class="col-md-4">
+        <div class="card shadow-sm stats-card not-started">
+          <div class="card-body text-center">
+            <h6 class="text-muted">Not Started</h6>
+            <h2 class="fw-bold" id="notStartedCount">0</h2>
+            <small class="text-muted">Students who have not taken the exam</small>
+          </div>
         </div>
-    </div>
+      </div>
 
-    <!-- INDIVIDUAL RESULT VIEW -->
-    <div id="individualResultView">
-        <div class="container py-4">
-            <button class="btn btn-outline-secondary mb-3" onclick="backToList()">
-                <i class="fas fa-arrow-left"></i> Back to Results List
-            </button>
-
-            <!-- Header/Confirmation Section -->
-            <div class="result-header">
-                <div class="row align-items-center">
-                    <div class="col-md-8">
-                        <h2 class="mb-3"><i class="fas fa-trophy"></i> Entrance Exam Results</h2>
-                        <div class="mb-2">
-                            <strong>Student Name:</strong> <span id="studentName">--</span>
-                        </div>
-                        <div class="mb-2">
-                            <strong>Reference Code:</strong> <span id="referenceCode">--</span>
-                        </div>
-                        <div class="mb-2">
-                            <strong>Date Taken:</strong> <span id="dateTaken">--</span>
-                        </div>
-                        <div class="mt-3">
-                            <span class="status-badge status-completed">
-                                <i class="fas fa-check-circle"></i> Completed
-                            </span>
-                        </div>
-                    </div>
-                    <div class="col-md-4 text-center">
-                        <div class="score-circle" id="overallScore">--</div>
-                        <p class="mt-2 mb-0">Overall Score</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Overall Performance Section -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-body text-center p-4">
-                    <h4 class="mb-3">Overall Performance</h4>
-                    <div class="row">
-                        <div class="col-md-4">
-                            <h3 class="text-primary" id="totalCorrect">0</h3>
-                            <p class="text-muted">Correct Answers</p>
-                        </div>
-                        <div class="col-md-4">
-                            <h3 class="text-info" id="totalQuestions">0</h3>
-                            <p class="text-muted">Total Questions</p>
-                        </div>
-                        <div class="col-md-4">
-                            <h3 class="text-success" id="percentageScore">0%</h3>
-                            <p class="text-muted">Percentage</p>
-                        </div>
-                    </div>
-                    <div class="alert mt-3" id="performanceMessage" role="alert">
-                        <i class="fas fa-info-circle"></i> <span id="performanceText">--</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Subject Area Breakdown -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-body">
-                    <h4 class="mb-4"><i class="fas fa-chart-line"></i> Subject Area Breakdown</h4>
-                    
-                    <!-- Chart Visualization -->
-                    <div class="chart-container">
-                        <canvas id="subjectChart"></canvas>
-                    </div>
-
-                    <!-- Detailed Table -->
-                    <div class="table-responsive mt-4">
-                        <table class="table table-hover">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>Subject Area</th>
-                                    <th>Correct</th>
-                                    <th>Total</th>
-                                    <th>Percentage</th>
-                                    <th>Progress</th>
-                                    <th>Remarks</th>
-                                </tr>
-                            </thead>
-                            <tbody id="subjectTableBody">
-                                <tr>
-                                    <td colspan="6" class="text-center">Loading subject data...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Strengths and Weaknesses -->
-            <div class="row mb-4">
-                <div class="col-md-6">
-                    <div class="card shadow-sm subject-card h-100">
-                        <div class="card-body">
-                            <h5 class="card-title text-success">
-                                <i class="fas fa-star"></i> Strengths
-                            </h5>
-                            <ul id="strengthsList" class="list-unstyled">
-                                <li>Loading...</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="card shadow-sm subject-card h-100" style="border-left-color: #dc3545;">
-                        <div class="card-body">
-                            <h5 class="card-title text-danger">
-                                <i class="fas fa-exclamation-triangle"></i> Areas for Improvement
-                            </h5>
-                            <ul id="weaknessesList" class="list-unstyled">
-                                <li>Loading...</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="action-buttons">
-                <button class="btn btn-danger btn-custom" onclick="downloadPDF()">
-                    <i class="fas fa-file-pdf"></i> Download Result (PDF)
-                </button>
-                <button class="btn btn-primary btn-custom" onclick="viewRecommendedPrograms()">
-                    <i class="fas fa-graduation-cap"></i> View Recommended Programs
-                </button>
-                <button class="btn btn-secondary btn-custom" onclick="backToList()">
-                    <i class="fas fa-list"></i> Back to Results List
-                </button>
-            </div>
+      <div class="col-md-4">
+        <div class="card shadow-sm stats-card ongoing">
+          <div class="card-body text-center">
+            <h6 class="text-muted">Ongoing</h6>
+            <h2 class="fw-bold text-info" id="ongoingCount">0</h2>
+            <small class="text-muted">Students currently taking the exam</small>
+          </div>
         </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card shadow-sm stats-card completed">
+          <div class="card-body text-center">
+            <h6 class="text-muted">Completed</h6>
+            <h2 class="fw-bold text-success" id="completedCount">0</h2>
+            <small class="text-muted">Students who finished the exam</small>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- Auto-refresh indicator -->
-    <div class="auto-refresh-indicator" id="refreshIndicator">
-        <i class="fas fa-sync-alt refresh-icon" id="refreshIcon"></i>
-        <span id="refreshStatus">Auto-updating...</span>
-        <span class="last-update-time" id="lastUpdateTime"></span>
+    <div class="card shadow-sm mb-4">
+      <div class="card-body">
+        <div class="row align-items-center g-3">
+          <div class="col-md-6">
+            <div class="input-group">
+              <span class="input-group-text"><i class="fas fa-search"></i></span>
+              <input type="text" class="form-control" id="searchInput" placeholder="Search by name or reference code...">
+            </div>
+          </div>
+
+          <div class="col-md-6 text-end">
+            <button class="btn btn-sm btn-outline-secondary active" onclick="filterResults('all', this)">All</button>
+            <button class="btn btn-sm btn-outline-secondary" onclick="filterResults('not_started', this)">Not Started</button>
+            <button class="btn btn-sm btn-outline-info" onclick="filterResults('in_progress', this)">Ongoing</button>
+            <button class="btn btn-sm btn-outline-success" onclick="filterResults('completed', this)">Completed</button>
+          </div>
+        </div>
+      </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    </body>
-    </html>
+
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-dark">
+              <tr>
+                <th>#</th>
+                <th>Reference Code</th>
+                <th>Student Name</th>
+                <th>Date Registered</th>
+                <th>Date Taken</th>
+                <th>Status</th>
+                <th>Score</th>
+                <th>Recommendation</th>
+                <th>Match</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="resultsTableBody">
+              <tr>
+                <td colspan="10" class="text-center">Loading student data...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="individualResultView">
+  <div class="container py-4">
+    <button class="btn btn-outline-secondary mb-3 back-button" onclick="backToList()">
+      <i class="fas fa-arrow-left"></i> Back to Results List
+    </button>
+
+    <div class="result-header">
+      <div class="row align-items-center">
+        <div class="col-md-8">
+          <h2 class="mb-3"><i class="fas fa-trophy"></i> Entrance Exam Result</h2>
+          <div><strong>Student Name:</strong> <span id="studentName">--</span></div>
+          <div><strong>Reference Code:</strong> <span id="referenceCode">--</span></div>
+          <div><strong>Email:</strong> <span id="studentEmail">--</span></div>
+          <div><strong>Date Taken:</strong> <span id="dateTaken">--</span></div>
+          <div class="mt-3">
+            <span class="status-badge status-completed"><i class="fas fa-check-circle"></i> Completed</span>
+          </div>
+        </div>
+
+        <div class="col-md-4 text-center">
+          <div class="score-circle" id="overallScore">--</div>
+          <p class="mt-2 mb-0">Overall Score</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card shadow-sm mb-4 recommendation-card">
+      <div class="card-body">
+        <h4 class="mb-3"><i class="fas fa-graduation-cap"></i> Program Recommendation</h4>
+        <div class="row text-center">
+          <div class="col-md-4">
+            <h6 class="text-muted">Recommended Program</h6>
+            <h4 id="recommendedProgram">--</h4>
+          </div>
+          <div class="col-md-4">
+            <h6 class="text-muted">Program Match</h6>
+            <h4 class="text-danger" id="programMatch">0%</h4>
+          </div>
+          <div class="col-md-4">
+            <h6 class="text-muted">Evaluation</h6>
+            <h4 id="qualificationStatus">--</h4>
+          </div>
+        </div>
+        <div class="alert alert-light border mt-3 mb-0" id="performanceText">--</div>
+      </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+      <div class="card-body text-center p-4">
+        <h4 class="mb-3">Overall Performance</h4>
+        <div class="row">
+          <div class="col-md-4">
+            <h3 class="text-primary" id="totalCorrect">0</h3>
+            <p class="text-muted">Correct Answers</p>
+          </div>
+          <div class="col-md-4">
+            <h3 class="text-info" id="totalQuestions">0</h3>
+            <p class="text-muted">Total Questions</p>
+          </div>
+          <div class="col-md-4">
+            <h3 class="text-success" id="percentageScore">0%</h3>
+            <p class="text-muted">Percentage</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+      <div class="card-body">
+        <h4 class="mb-4"><i class="fas fa-chart-line"></i> Subject Area Breakdown</h4>
+
+        <div class="chart-container">
+          <canvas id="subjectChart"></canvas>
+        </div>
+
+        <div class="table-responsive mt-4">
+          <table class="table table-hover">
+            <thead class="table-dark">
+              <tr>
+                <th>Subject Area</th>
+                <th>Correct</th>
+                <th>Total</th>
+                <th>Percentage</th>
+                <th>Progress</th>
+                <th>Remarks</th>
+              </tr>
+            </thead>
+            <tbody id="subjectTableBody">
+              <tr>
+                <td colspan="6" class="text-center">Loading subject data...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="row mb-4">
+      <div class="col-md-6">
+        <div class="card shadow-sm subject-card h-100">
+          <div class="card-body">
+            <h5 class="card-title text-success"><i class="fas fa-star"></i> Strengths</h5>
+            <ul id="strengthsList" class="list-unstyled mb-0">
+              <li>Loading...</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="card shadow-sm subject-card h-100" style="border-left-color: #dc3545;">
+          <div class="card-body">
+            <h5 class="card-title text-danger"><i class="fas fa-exclamation-triangle"></i> Areas for Improvement</h5>
+            <ul id="weaknessesList" class="list-unstyled mb-0">
+              <li>Loading...</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="action-buttons d-flex justify-content-center gap-3 flex-wrap">
+      <button class="btn btn-danger btn-custom" onclick="window.print()">
+        <i class="fas fa-file-pdf"></i> Print / Save as PDF
+      </button>
+      <button class="btn btn-secondary btn-custom" onclick="backToList()">
+        <i class="fas fa-list"></i> Back to Results List
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="auto-refresh-indicator">
+  <i class="fas fa-sync-alt refresh-icon"></i>
+  <span>Loaded</span>
+  <span class="last-update-time" id="lastUpdateTime"></span>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+let allResults = [];
+let visibleResults = [];
+let activeFilter = "all";
+let subjectChart = null;
+
+document.addEventListener("DOMContentLoaded", function () {
+  loadResults();
+
+  document.getElementById("searchInput").addEventListener("input", function () {
+    applySearchAndFilter();
+  });
+});
+
+function loadResults() {
+  fetch("/api/results")
+    .then(response => response.json())
+    .then(data => {
+      allResults = data.results || [];
+      visibleResults = [...allResults];
+      renderTable(visibleResults);
+      updateStats(allResults);
+      updateTimestamp();
+    })
+    .catch(error => {
+      console.error(error);
+      document.getElementById("resultsTableBody").innerHTML = `
+        <tr>
+          <td colspan="10" class="text-center text-danger">
+            Failed to load results.
+          </td>
+        </tr>
+      `;
+    });
+}
+
+function renderTable(results) {
+  const tbody = document.getElementById("resultsTableBody");
+  tbody.innerHTML = "";
+
+  if (!results.length) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="10" class="text-center">No exam results found.</td>
+      </tr>
+    `;
+    return;
+  }
+
+  results.forEach((r, index) => {
+    const status = r.status || "completed";
+    const statusClass = status === "completed" ? "status-completed" :
+                        status === "in_progress" ? "status-ongoing" :
+                        "status-not-started";
+
+    tbody.innerHTML += `
+      <tr>
+        <td>${index + 1}</td>
+        <td>${r.reference_code || "--"}</td>
+        <td>${r.name || "--"}</td>
+        <td>${r.registration_date || "--"}</td>
+        <td>${r.date_taken || "--"}</td>
+        <td><span class="status-badge ${statusClass}">${formatStatus(status)}</span></td>
+        <td>${r.score ?? 0}/${r.total_questions ?? 0}</td>
+        <td>${r.recommended_program || "--"}</td>
+        <td>${r.match_percentage ?? 0}%</td>
+        <td>
+          <button class="btn btn-sm btn-primary" onclick="viewResult(${r.result_id})">
+            View
+          </button>
+        </td>
+      </tr>
+    `;
+  });
+}
+
+function updateStats(results) {
+  const completed = results.filter(r => r.status === "completed").length;
+  const ongoing = results.filter(r => r.status === "in_progress").length;
+  const notStarted = results.filter(r => r.status === "not_started").length;
+
+  document.getElementById("completedCount").innerText = completed;
+  document.getElementById("ongoingCount").innerText = ongoing;
+  document.getElementById("notStartedCount").innerText = notStarted;
+}
+
+function filterResults(status, button) {
+  activeFilter = status;
+
+  document.querySelectorAll(".filter-buttons button").forEach(btn => {
+    btn.classList.remove("active");
+  });
+
+  if (button) button.classList.add("active");
+
+  applySearchAndFilter();
+}
+
+function applySearchAndFilter() {
+  const keyword = document.getElementById("searchInput").value.toLowerCase().trim();
+
+  visibleResults = allResults.filter(r => {
+    const matchesFilter = activeFilter === "all" || r.status === activeFilter;
+    const matchesSearch =
+      (r.name || "").toLowerCase().includes(keyword) ||
+      (r.reference_code || "").toLowerCase().includes(keyword) ||
+      (r.recommended_program || "").toLowerCase().includes(keyword);
+
+    return matchesFilter && matchesSearch;
+  });
+
+  renderTable(visibleResults);
+}
+
+function viewResult(resultId) {
+  const r = allResults.find(item => item.result_id === resultId);
+
+  if (!r) {
+    alert("Result not found.");
+    return;
+  }
+
+  document.getElementById("resultsListView").classList.remove("active");
+  document.getElementById("individualResultView").classList.add("active");
+
+  const score = r.score || 0;
+  const total = r.total_questions || 0;
+  const percentage = total > 0 ? Math.round((score / total) * 100) : 0;
+  const qualification = r.qualification_status || getQualificationStatus(percentage);
+
+  document.getElementById("studentName").innerText = r.name || "--";
+  document.getElementById("referenceCode").innerText = r.reference_code || "--";
+  document.getElementById("studentEmail").innerText = r.email || "--";
+  document.getElementById("dateTaken").innerText = r.date_taken || "--";
+
+  document.getElementById("overallScore").innerText = `${score}/${total}`;
+  document.getElementById("totalCorrect").innerText = score;
+  document.getElementById("totalQuestions").innerText = total;
+  document.getElementById("percentageScore").innerText = `${percentage}%`;
+
+  document.getElementById("recommendedProgram").innerText = r.recommended_program || "No Program Match";
+  document.getElementById("programMatch").innerText = `${r.match_percentage || 0}%`;
+  document.getElementById("qualificationStatus").innerText = qualification;
+
+  document.getElementById("performanceText").innerText =
+    `The student is recommended for ${r.recommended_program || "No Program Match"} with a ${r.match_percentage || 0}% program match based on subject performance. Evaluation status: ${qualification}.`;
+
+  renderSubjectBreakdown(r);
+  renderStrengthsWeaknesses(r);
+  renderChart(r);
+}
+
+function renderSubjectBreakdown(r) {
+  const subjectBody = document.getElementById("subjectTableBody");
+  subjectBody.innerHTML = "";
+
+  const totals = r.subject_totals || {};
+  const scores = r.subject_scores || {};
+
+  Object.keys(totals).forEach(subject => {
+    const score = scores[subject] || 0;
+    const total = totals[subject] || 0;
+    const percent = total > 0 ? Math.round((score / total) * 100) : 0;
+
+    subjectBody.innerHTML += `
+      <tr>
+        <td>${subject}</td>
+        <td>${score}</td>
+        <td>${total}</td>
+        <td>${percent}%</td>
+        <td>
+          <div class="progress">
+            <div class="progress-bar" style="width:${percent}%">${percent}%</div>
+          </div>
+        </td>
+        <td>${getRemark(percent)}</td>
+      </tr>
+    `;
+  });
+}
+
+function renderStrengthsWeaknesses(r) {
+  const totals = r.subject_totals || {};
+  const scores = r.subject_scores || {};
+
+  const subjects = Object.keys(totals).map(subject => {
+    const total = totals[subject] || 0;
+    const score = scores[subject] || 0;
+    const percent = total > 0 ? Math.round((score / total) * 100) : 0;
+
+    return { subject, score, total, percent };
+  });
+
+  subjects.sort((a, b) => b.percent - a.percent);
+
+  const strengths = subjects.filter(item => item.percent >= 70).slice(0, 3);
+  const weaknesses = subjects.filter(item => item.percent < 50).slice(0, 3);
+
+  document.getElementById("strengthsList").innerHTML =
+    strengths.length
+      ? strengths.map(item => `
+          <li class="mb-2">
+            <i class="fas fa-check-circle text-success"></i>
+            <strong>${item.subject}</strong> - ${item.percent}% performance
+          </li>
+        `).join("")
+      : `<li>No strong subject area detected yet.</li>`;
+
+  document.getElementById("weaknessesList").innerHTML =
+    weaknesses.length
+      ? weaknesses.map(item => `
+          <li class="mb-2">
+            <i class="fas fa-exclamation-circle text-danger"></i>
+            <strong>${item.subject}</strong> - needs improvement (${item.percent}%)
+          </li>
+        `).join("")
+      : `<li>No major weakness detected.</li>`;
+}
+
+function renderChart(r) {
+  const totals = r.subject_totals || {};
+  const scores = r.subject_scores || {};
+
+  const labels = Object.keys(totals);
+  const percentages = labels.map(subject => {
+    const total = totals[subject] || 0;
+    const score = scores[subject] || 0;
+    return total > 0 ? Math.round((score / total) * 100) : 0;
+  });
+
+  const ctx = document.getElementById("subjectChart").getContext("2d");
+
+  if (subjectChart) {
+    subjectChart.destroy();
+  }
+
+  subjectChart = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: labels,
+      datasets: [{
+        label: "Subject Performance (%)",
+        data: percentages,
+        backgroundColor: [
+          "#dc3545",
+          "#0d6efd",
+          "#198754",
+          "#ffc107",
+          "#6f42c1"
+        ]
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 100
+        }
+      }
+    }
+  });
+}
+
+function getQualificationStatus(percent) {
+  if (percent >= 80) return "Qualified";
+  if (percent >= 60) return "Conditionally Recommended";
+  return "Not Yet Ready";
+}
+
+function getRemark(percent) {
+  if (percent >= 90) return "Excellent";
+  if (percent >= 75) return "Very Good";
+  if (percent >= 50) return "Average";
+  return "Needs Improvement";
+}
+
+function formatStatus(status) {
+  if (status === "in_progress") return "Ongoing";
+  if (status === "not_started") return "Not Started";
+  return "Completed";
+}
+
+function backToList() {
+  document.getElementById("individualResultView").classList.remove("active");
+  document.getElementById("resultsListView").classList.add("active");
+}
+
+function updateTimestamp() {
+  const now = new Date();
+  document.getElementById("lastUpdateTime").innerText =
+    now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+function exportToCSV() {
+  if (!allResults.length) {
+    alert("No results to export.");
+    return;
+  }
+
+  const headers = [
+    "Reference Code",
+    "Student Name",
+    "Email",
+    "Date Registered",
+    "Date Taken",
+    "Status",
+    "Score",
+    "Total Questions",
+    "Recommended Program",
+    "Program Match"
+  ];
+
+  const rows = allResults.map(r => [
+    r.reference_code || "",
+    r.name || "",
+    r.email || "",
+    r.registration_date || "",
+    r.date_taken || "",
+    r.status || "",
+    r.score || 0,
+    r.total_questions || 0,
+    r.recommended_program || "",
+    `${r.match_percentage || 0}%`
+  ]);
+
+  const csvContent = [headers, ...rows]
+    .map(row => row.map(value => `"${String(value).replace(/"/g, '""')}"`).join(","))
+    .join("\n");
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "exam_results.csv";
+  link.click();
+
+  URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>

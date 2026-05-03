@@ -382,19 +382,6 @@
       </nav>
     </div>
 
-    <!-- Flash Messages -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-          <div class="alert alert-{{ category }} alert-custom alert-dismissible fade show">
-            <i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-triangle' }}"></i>
-            <span>{{ message }}</span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-          </div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
-
     <!-- Form Card -->
     <div class="form-card">
       <form method="POST" action="{{ url_for('add_main_exam_question') }}" id="questionForm">
@@ -414,9 +401,10 @@
               <select class="form-select" id="subject" name="subject" required>
                 <option value="">Select a subject</option>
                 <option value="Mathematics">Mathematics</option>
-                <option value="Science">Science</option>
-                <option value="Language Proficiency">Language Proficiency</option>
-                <option value="Reading Comprehension">Reading Comprehension</option>
+                <option value="Science">Science & Technology</option>
+                <option value="Language Proficiency">Language and Communication</option>
+                <option value="Reading Comprehension">Reading Comprehension & Critical Thinking</option>
+                <option value="Reading Comprehension">General Knowledge/Social Sciences</option>
               </select>
               <div class="form-text">Choose the subject category for this question</div>
             </div>

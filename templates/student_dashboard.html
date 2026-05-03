@@ -6,230 +6,304 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Student Dashboard | Entrance Exam System</title>
 
-  <!-- Bootstrap & Icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
-    /* --- Navbar --- */
-    .navbar-custom {
-      background-color: #ff0000 !important;
-      color: white;
-    }
-    .navbar-custom .nav-link, 
-    .navbar-custom .navbar-brand,
-    .navbar-custom .dropdown-toggle {
-      color: white !important;
+    body {
+      background: #fff;
+      font-family: Arial, sans-serif;
     }
 
-    /* --- Dashboard Exam Cards --- */
-    .exam-container {
-      min-height: calc(100vh - 80px);
+    /* Navbar */
+    .navbar-custom {
+      background-color: #cc0000;
+      padding: 12px 20px;
+    }
+    .navbar-custom .navbar-brand {
+      color: white;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    /* Greeting bar */
+    .greeting-strip {
+      background: #fff;
+      color: #cc0000;
+      text-align: center;
+      padding: 20px 20px 18px;
+      border-bottom: 3px solid #cc0000;
+      border-top: 1px solid #eee;
+    }
+    .greeting-strip h2 {
+      font-size: 22px;
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+    .greeting-strip p {
+      font-size: 14px;
+      margin: 0;
+      color: #555;
+    }
+
+    /* Page layout */
+    .page-wrapper {
+      max-width: 900px;
+      margin: 36px auto;
+      padding: 0 16px;
+    }
+
+    /* Reminder box */
+    .reminder-box {
+      border: 2px solid #cc0000;
+      border-radius: 6px;
+      padding: 20px 24px;
+      margin-bottom: 24px;
+      background: #fff;
+    }
+    .reminder-box h5 {
+      color: #cc0000;
+      font-weight: bold;
+      margin-bottom: 14px;
+      font-size: 15px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .reminder-box ul {
+      padding-left: 18px;
+      margin: 0;
+    }
+    .reminder-box ul li {
+      font-size: 14px;
+      color: #333;
+      margin-bottom: 8px;
+      line-height: 1.6;
+    }
+    .reminder-box ul li:last-child {
+      margin-bottom: 0;
+    }
+
+    /* Good luck box */
+    .goodluck-box {
+      background: #cc0000;
+      color: white;
+      border-radius: 6px;
+      padding: 20px 24px;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+    .goodluck-box h5 {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+    .goodluck-box p {
+      font-size: 13px;
+      margin: 0;
+      opacity: 0.9;
+      line-height: 1.6;
+    }
+    .goodluck-box .quote {
+      margin-top: 12px;
+      font-style: italic;
+      font-size: 13px;
+      opacity: 0.8;
+      border-top: 1px solid rgba(255,255,255,0.3);
+      padding-top: 10px;
+    }
+
+    /* Exam card */
+    .exam-card {
+      border: 2px solid #cc0000;
+      border-radius: 6px;
+      background: white;
+      padding: 28px 28px 24px;
+      margin-bottom: 24px;
+    }
+    .exam-card .card-header-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+    .exam-card .card-icon {
+      background: #cc0000;
+      color: white;
+      width: 44px;
+      height: 44px;
+      border-radius: 6px;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 40px 20px;
+      font-size: 20px;
+      flex-shrink: 0;
     }
-    .exam-card {
-      background: white;
-      border-radius: 20px;
-      padding: 50px 40px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-      text-align: center;
-      transition: transform 0.3s, box-shadow 0.3s;
-      max-width: 400px;
-      width: 100%;
+    .exam-card h4 {
+      font-size: 20px;
+      font-weight: bold;
+      color: #222;
+      margin: 0;
     }
-    .exam-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 15px 50px rgba(0,0,0,0.15);
-    }
-    .exam-card h3 {
-      font-size: 28px;
-      font-weight: 700;
+    .exam-card p.desc {
+      font-size: 14px;
+      color: #555;
       margin-bottom: 20px;
-      color: #333;
+      line-height: 1.6;
     }
-    .exam-card p {
-      color: #666;
-      margin-bottom: 30px;
-      font-size: 16px;
+    .exam-card .divider {
+      border-top: 1px solid #eee;
+      margin-bottom: 20px;
     }
-    .exam-card .btn-exam {
-      background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+
+    /* Button */
+    .btn-start {
+      background-color: #cc0000;
       color: white;
       border: none;
-      padding: 15px 50px;
-      font-size: 18px;
-      font-weight: 600;
-      border-radius: 50px;
-      transition: all 0.3s;
-      text-transform: uppercase;
-      letter-spacing: 1px;
+      padding: 12px 36px;
+      font-size: 15px;
+      font-weight: bold;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.2s;
     }
-    .exam-card .btn-exam:hover:not(:disabled) {
-      transform: scale(1.05);
-      box-shadow: 0 5px 20px rgba(255,0,0,0.4);
+    .btn-start:hover:not(:disabled) {
+      background-color: #aa0000;
     }
-    .exam-card .btn-exam:disabled {
-      background: linear-gradient(135deg, #cccccc 0%, #999999 100%);
+    .btn-start:disabled {
+      background-color: #ccc;
       cursor: not-allowed;
-      transform: none;
     }
-    .exam-card .exam-icon {
-      font-size: 64px;
-      color: #ff0000;
-      margin-bottom: 20px;
-    }
-    .exam-card .completed-badge {
-      background: #28a745;
-      color: white;
-      padding: 8px 20px;
-      border-radius: 20px;
-      font-size: 14px;
-      font-weight: 600;
-      display: inline-block;
-      margin-bottom: 15px;
-    }
-    .exam-card .score-display {
-      font-size: 20px;
-      color: #ff0000;
-      font-weight: 700;
+
+    .note-text {
+      font-size: 12px;
+      color: #888;
       margin-top: 10px;
     }
-
-    .btn-exam:disabled {
-    background: linear-gradient(135deg, #cccccc 0%, #999999 100%);
-    cursor: not-allowed;
-    transform: none;
+    .note-text i {
+      color: #cc0000;
     }
 
+    /* Footer */
+    .page-footer {
+      text-align: center;
+      font-size: 12px;
+      color: #aaa;
+      padding: 20px 0 32px;
+    }
   </style>
 </head>
 
-<body class="bg-light">
-  
-  <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-light navbar-custom">
-    <div class="container-fluid">
-      <a class="navbar-brand ms-2" href="#">
-        Online Entrance Exam System
-      </a>
+<body>
 
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav ms-auto">
-          <li class="nav-item">
-            <div class="dropdown me-2">
-              <button class="btn dropdown-toggle bg-transparent border-0 text-white" data-bs-toggle="dropdown">
-                Welcome, {{ student.name }}!
-              </button>
-              <ul class="dropdown-menu dropdown-menu-end">
-                <li><a class="dropdown-item" href="/student/logout">Logout</a></li>
-              </ul>
-            </div>
-          </li>
-        </ul>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-custom">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">Online Entrance Exam System</a>
+      <div>
+        <div class="dropdown">
+          <button class="btn dropdown-toggle bg-transparent border-0 text-white fw-bold"
+                  data-bs-toggle="dropdown">
+            {{ student.name }}
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="/student/logout">Logout</a></li>
+          </ul>
+        </div>
       </div>
     </div>
   </nav>
 
-  <!-- Exam Cards -->
-  <div class="exam-container">
-    <div class="container">
-      <h2 class="text-center mb-5 fw-bold" style="color: #333;">Select Your Exam</h2>
-      
-      <div class="row g-5 justify-content-center">
-        <!-- Main Exam Card -->
-        <div class="col-md-6 col-lg-5">
-          <div class="exam-card" id="mainExamCard">
-            <i class="fas fa-book-open exam-icon"></i>
-            <div id="mainExamStatus"></div>
-            <h3>Main Exam</h3>
-            <p>Comprehensive examination covering all core subjects and topics</p>
-            <button class="btn btn-exam" id="mainExamBtn">
-               Take the Exam
-            </button>
-          </div>
-        </div>
+  <!-- Greeting -->
+   <div class="page-wrapper">
+  <div class="greeting-strip">
+    <h2>Welcome, {{ student.name }}! </h2>
+  </div>
+  </div>
 
-        <!-- Aptitude Exam Card -->
-        <div class="col-md-6 col-lg-5">
-          <div class="exam-card" id="aptitudeExamCard">
-            <i class="fas fa-brain exam-icon"></i>
-            <div id="aptitudeExamStatus"></div>
-            <h3>Aptitude Exam</h3>
-            <p>Assessment of logical reasoning, analytical and problem-solving skills</p>
-            <button class="btn btn-exam" id="aptitudeExamBtn" onclick="startExam('aptitude')">
-              Take the Exam
-            </button>
-          </div>
+  <div class="page-wrapper">
+
+    <!-- Reminders -->
+    <div class="reminder-box">
+      <h5><i class="fas fa-exclamation-circle me-1"></i> Before You Start — Please Read</h5>
+      <ul>
+        <li><strong>Stable internet connection is required.</strong> Do not refresh or close the browser tab once the exam has started.</li>
+        <li><strong>One attempt only.</strong> The exam cannot be paused, restarted, or retaken once you begin.</li>
+        <li><strong>Read all questions carefully</strong> before selecting your answer. Rushing leads to careless mistakes.</li>
+        <li><strong>No external help allowed.</strong> This exam must be completed independently. Academic honesty matters.</li>
+        <li><strong>Review your answers</strong> before hitting submit if time still allows.</li>
+      </ul>
+    </div>
+
+    <!-- Exam Card -->
+    <div class="exam-card">
+      <div class="card-header-row">
+        <div class="card-icon">
+          <i class="fas fa-book-open"></i>
         </div>
+        <h4>Main Entrance Exam</h4>
       </div>
+
+      <p class="desc">
+        This is the comprehensive entrance examination covering all core subjects. Once you click the button below, your exam session will begin immediately. Make sure you are ready before proceeding.
+      </p>
+
+      <div class="divider"></div>
+
+      <button class="btn-start" id="mainExamBtn">
+        <i class="fas fa-play me-1"></i> Take the Exam
+      </button>
+      <div class="note-text">
+        <i class="fas fa-clock"></i> The timer starts as soon as you click the button.
+      </div>
+    </div>
+
+    <div class="page-footer">
+      &copy; Online Entrance Exam System &mdash; Good luck to all examinees!
     </div>
   </div>
 
-  <!-- Bootstrap -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
   <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const enrolleeId = {{ session['student_id'] | tojson }};
-    const studentStatus = "{{ student.status }}";  // from Flask session
 
-    const mainExamBtn = document.getElementById('mainExamBtn');
-    const aptitudeExamBtn = document.getElementById('aptitudeExamBtn');
+    // Exam button logic
+    document.addEventListener('DOMContentLoaded', function () {
+      const enrolleeId = {{ session['student_id'] | tojson }};
+      const studentStatus = "{{ student.status }}";
+      const mainExamBtn = document.getElementById('mainExamBtn');
 
-    const notStartedCard = document.getElementById('notStartedCount');
-    const inProgressCard = document.getElementById('inProgressCount');
-    const completedCard = document.getElementById('completedCount');
-
-    // Disable Main Exam and grey out
-    function disableMainExamBtn() {
+      if (studentStatus === 'completed') {
         mainExamBtn.disabled = true;
-        mainExamBtn.textContent = 'Already Taken';
-        mainExamBtn.classList.add('btn-exam-disabled'); // optional, for extra CSS if needed
-    }
+        mainExamBtn.innerHTML = '<i class="fas fa-check me-1"></i> Already Taken';
+      }
 
-    if (studentStatus === 'completed') {
-        disableMainExamBtn();
-    }
-
-    // Main Exam click
-    mainExamBtn.addEventListener('click', function(e) {
+      mainExamBtn.addEventListener('click', function (e) {
         e.preventDefault();
         if (mainExamBtn.disabled) return;
 
+        mainExamBtn.disabled = true;
+        mainExamBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Starting...';
+
         fetch(`/api/enrollee/start_exam/${enrolleeId}`, { method: 'POST' })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    disableMainExamBtn();
-
-                    if (notStartedCard && inProgressCard) {
-                        notStartedCard.textContent = parseInt(notStartedCard.textContent) - 1;
-                        inProgressCard.textContent = parseInt(inProgressCard.textContent) + 1;
-                    }
-
-                    window.location.href = "{{ url_for('student_exam') }}";
-                } else {
-                    alert(data.error || 'Failed to start the exam.');
-                }
-            })
-            .catch(err => {
-                console.error('Error starting the exam:', err);
-                alert('Error starting the exam. Please try again.');
-            });
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              window.location.href = "{{ url_for('student_exam') }}";
+            } else {
+              mainExamBtn.disabled = false;
+              mainExamBtn.innerHTML = '<i class="fas fa-play me-1"></i> Take the Exam';
+              alert(data.error || 'Failed to start the exam.');
+            }
+          })
+          .catch(err => {
+            console.error('Error:', err);
+            mainExamBtn.disabled = false;
+            mainExamBtn.innerHTML = '<i class="fas fa-play me-1"></i> Take the Exam';
+            alert('Error starting the exam. Please try again.');
+          });
+      });
     });
-
-    // Aptitude Exam click
-    aptitudeExamBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        startExam('aptitude');
-    });
-});
-</script>
-
-
+  </script>
 
 </body>
 </html>
