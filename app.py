@@ -5,6 +5,7 @@ from io import TextIOWrapper
 from sqlalchemy import func
 from threading import Thread
 import os
+import requests
 import csv
 import random
 import string
@@ -235,11 +236,13 @@ def get_recommendation(total_correct, total_questions, subject_scores, subject_t
 
 
 def send_reference_email(student_name, email, reference_code, expiration):
+    api_key = os.environ.get("BREVO_API_KEY")
+
     html = f"""
     <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.5;">
         <h2 style="color: #b91c1c;">GUIDED PATH: REFERENCE CODE</h2>
         <p>Dear Mr./Ms. {student_name},</p>
-        <p>Thank you for registering for the entrance exam. Your unique reference code is:</p>
+        <p>Thank you for registering for the entrance exam. Your reference code is:</p>
         <div style="background-color: #f3f4f6; padding: 15px; border-radius: 5px; font-size: 18px; font-weight: bold; text-align: center; margin: 20px 0;">
             {reference_code}
         </div>
@@ -248,20 +251,31 @@ def send_reference_email(student_name, email, reference_code, expiration):
     </div>
     """
 
-    msg = Message(
-        subject="Official Entrance Examination Reference Code - Admissions Office",
-        sender=app.config["MAIL_DEFAULT_SENDER"],
-        recipients=[email],
-        html=html,
+    payload = {
+        "sender": {
+            "name": "Guided Path - Admissions Office",
+            "email": os.environ.get("MAIL_SENDER_EMAIL")
+        },
+        "to": [{"email": email, "name": student_name}],
+        "subject": "Official Entrance Examination Reference Code - Admissions Office",
+        "htmlContent": html
+    }
+
+    response = requests.post(
+        "https://api.brevo.com/v3/smtp/email",
+        headers={
+            "accept": "application/json",
+            "api-key": api_key,
+            "content-type": "application/json"
+        },
+        json=payload,
+        timeout=10
     )
 
-    print("SMTP SERVER:", app.config["MAIL_SERVER"], flush=True)
-    print("SMTP PORT:", app.config["MAIL_PORT"], flush=True)
-    print("SMTP USER:", app.config["MAIL_USERNAME"], flush=True)
-    print("SENDER:", app.config["MAIL_DEFAULT_SENDER"], flush=True)
-    print("SENDING TO:", email, flush=True)
-    mail.send(msg)
-    print("BREVO SEND COMPLETED", flush=True)
+    print("BREVO API STATUS:", response.status_code, flush=True)
+    print("BREVO API RESPONSE:", response.text, flush=True)
+
+    response.raise_for_status()
 
 def send_result_email(student, result):
     msg = Message(
