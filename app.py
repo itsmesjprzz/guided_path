@@ -33,7 +33,7 @@ app.config["MAIL_PORT"] = 587
 app.config["MAIL_USE_TLS"] = True
 app.config["MAIL_USERNAME"] = os.environ.get("MAIL_USERNAME")
 app.config["MAIL_PASSWORD"] = os.environ.get("MAIL_PASSWORD")
-app.config["MAIL_DEFAULT_SENDER"] = "iaaanmendaro16@gmail.com"
+app.config["MAIL_DEFAULT_SENDER"] = ("Admissions Office - Guided Path", os.environ.get("MAIL_USERNAME"))
 
 db.init_app(app)
 mail = Mail(app)
@@ -226,7 +226,7 @@ def send_reference_email(student_name, email, reference_code, expiration):
     html = f"""
     <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.5;">
         <h2 style="color: #b91c1c;">GUIDED PATH: REFERENCE CODE</h2>
-        <p>Dear, Mr./Ms. {student_name},</p>
+        <p>Dear Mr./Ms. {student_name},</p>
         <p>Thank you for registering for the entrance exam. Your unique reference code is:</p>
         <div style="background-color: #f3f4f6; padding: 15px; border-radius: 5px; font-size: 18px; font-weight: bold; text-align: center; margin: 20px 0;">
             {reference_code}
@@ -237,7 +237,7 @@ def send_reference_email(student_name, email, reference_code, expiration):
     """
 
     msg = Message(
-        subject="Entrance Exam Reference Code | Guided Path",
+        subject="Official Entrance Examination Reference Code - Admissions Office",
         sender=app.config["MAIL_USERNAME"],
         recipients=[email],
         html=html,
