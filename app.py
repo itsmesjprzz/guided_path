@@ -35,13 +35,11 @@ app.config["MAIL_USE_TLS"] = True
 app.config["MAIL_USE_SSL"] = False
 app.config["MAIL_USERNAME"] = os.environ.get("MAIL_USERNAME")
 app.config["MAIL_PASSWORD"] = os.environ.get("MAIL_PASSWORD")
-
 app.config["MAIL_DEFAULT_SENDER"] = (
-    "Admissions Office - Guided Path",
+    "Guided Path - Admissions Office",
     os.environ.get("MAIL_SENDER_EMAIL")
 )
-
-app.config["MAIL_TIMEOUT"] = 10
+app.config["MAIL_TIMEOUT"] = 20
 
 db.init_app(app)
 mail = Mail(app)
@@ -256,6 +254,12 @@ def send_reference_email(student_name, email, reference_code, expiration):
         recipients=[email],
         html=html,
     )
+
+    print("SMTP SERVER:", app.config["MAIL_SERVER"], flush=True)
+    print("SMTP PORT:", app.config["MAIL_PORT"], flush=True)
+    print("SMTP USER:", app.config["MAIL_USERNAME"], flush=True)
+    print("SENDER:", app.config["MAIL_DEFAULT_SENDER"], flush=True)
+    print("SENDING TO:", email, flush=True)
     mail.send(msg)
 
 
