@@ -1427,37 +1427,17 @@
   // ─────────────────────────────────────
   document.addEventListener('visibilitychange', function () {
 
-    if (timeRemaining <= 0 || isSubmitting) return;
+  if (timeRemaining <= 0 || isSubmitting) return;
 
-    if (document.hidden) {
+  if (document.hidden) {
 
-      isPageHidden = true;
+    alert(
+      'Exam automatically ended because you switched tabs or minimized the browser.'
+    );
 
-      alert(
-        `Warning: Do not switch tabs.\n\n` +
-        `If you stay outside the exam for more than ${TAB_LIMIT_SECONDS} seconds, the exam will automatically submit.`
-      );
-
-      tabSwitchTimeout = setTimeout(() => {
-
-        if (isPageHidden) {
-
-          alert(
-            'Exam automatically submitted because you left the exam tab too long.'
-          );
-
-          submitExam();
-        }
-
-      }, TAB_LIMIT_SECONDS * 1000);
-
-    } else {
-
-      isPageHidden = false;
-
-      clearTimeout(tabSwitchTimeout);
-    }
-  });
+    submitExam();
+  }
+});
 
 </script>
 
