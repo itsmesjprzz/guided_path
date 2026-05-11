@@ -583,7 +583,6 @@ def submit_exam():
         correct_answers=0,
         total_questions=0,
         status="completed",
-        remarks=auto_submit_reason if auto_submit_reason else "Completed normally"
     )
 
     db.session.add(exam_result)
