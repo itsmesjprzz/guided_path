@@ -835,6 +835,15 @@ def import_questions():
         except Exception as exc:
             skipped += 1
             print(f"Row {index} skipped: {exc}")
+    db.session.execute(
+    db.text("""
+        SELECT setval(
+            'exam_questions_id_seq',
+            COALESCE((SELECT MAX(id) FROM exam_questions), 1),
+            true
+        )
+    """)
+    )
 
     db.session.commit()
     flash(f"{inserted} question(s) imported. {skipped} row(s) skipped.", "success" if inserted else "warning")
