@@ -867,11 +867,7 @@
   let isSubmitting = false;
 
   // Anti-cheat
-  let tabSwitchTimeout;
   let idleTimeout;
-  let isPageHidden = false;
-
-  const TAB_LIMIT_SECONDS = 15;
   const IDLE_LIMIT_MINUTES = 5;
 
   // ─────────────────────────────────────
@@ -1370,7 +1366,6 @@
         throw new Error(data.error || 'Submission failed');
       }
 
-      window.location.href =
         window.location.replace('/student/thank-you');
 
     } catch (err) {
@@ -1402,16 +1397,6 @@
   // ─────────────────────────────────────
   // GUARDS
   // ─────────────────────────────────────
-  window.addEventListener('beforeunload', function(e) {
-
-    if (timeRemaining > 0 && !isSubmitting) {
-
-      e.preventDefault();
-
-      e.returnValue =
-        '⚠ You have an exam in progress!';
-    }
-  });
 
   window.history.pushState(null, '', window.location.href);
 
@@ -1425,17 +1410,35 @@
   // ─────────────────────────────────────
   // ALT TAB DETECTION
   // ─────────────────────────────────────
-  document.addEventListener('visibilitychange', function () {
+  document.addEventListener('visibilitychange', async function () {
 
   if (timeRemaining <= 0 || isSubmitting) return;
 
   if (document.hidden) {
 
-    alert(
-      'Exam automatically ended because you switched tabs or minimized the browser.'
-    );
+    isSubmitting = true;
 
-    submitExam();
+    clearInterval(timerInterval);
+    clearTimeout(idleTimeout);
+
+    try {
+
+      await fetch('/student/submit_exam', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          answers: studentAnswers
+        }),
+        keepalive: true
+      });
+
+    } catch (err) {
+      console.error(err);
+    }
+
+    window.location.replace('/student/thank-you');
   }
 });
 
