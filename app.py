@@ -502,16 +502,31 @@ def student_register():
 
 @app.route("/student/exam")
 def student_exam():
+
     student_id = session.get("student_id")
+
     if not student_id:
         return redirect(url_for("student_login"))
 
     student = Enrollee.query.get(student_id)
+
     if not student:
         return "Student not found", 404
 
+    # If exam already completed
     if student.status == "completed":
-     return redirect(url_for("student_thank_you"))
+        return redirect(url_for("student_thank_you"))
+
+    questions = ExamQuestion.query.all()
+
+    random.shuffle(questions)
+
+    return render_template(
+        "student_main_exam.html",
+        questions=[q.to_dict() for q in questions],
+        duration=60,
+        student=student,
+    )
     
 
 
