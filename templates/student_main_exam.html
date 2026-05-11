@@ -923,7 +923,7 @@
         `Exam automatically submitted because you were inactive for ${IDLE_LIMIT_MINUTES} minutes.`
       );
 
-      submitExam();
+      submitExam("Inactive during examination");
 
     }, IDLE_LIMIT_MINUTES * 60 * 1000);
   }
@@ -1242,7 +1242,7 @@
 
         clearInterval(timerInterval);
 
-        submitExam();
+        submitExam("Inactive during examination");
       }
 
     }, 1000);
@@ -1322,62 +1322,61 @@
     ).show();
   }
 
-  async function submitExam() {
+  async function submitExam(reason = null) {
 
-    if (isSubmitting) return;
+  if (isSubmitting) return;
 
-    isSubmitting = true;
+  isSubmitting = true;
 
-    clearInterval(timerInterval);
-    clearTimeout(idleTimeout);
-    clearTimeout(tabSwitchTimeout);
+  clearInterval(timerInterval);
+  clearTimeout(idleTimeout);
 
-    document.body.innerHTML = `
-      <div style="
-        height:100vh;
-        display:flex;
-        justify-content:center;
-        align-items:center;
-        flex-direction:column;
-        font-family:sans-serif;
-        background:white;
-      ">
-        <div class="spinner-border text-danger"></div>
-        <h3 style="margin-top:20px;">Submitting Exam...</h3>
-        <p>Please wait and do not refresh.</p>
-      </div>
-    `;
+  document.body.innerHTML = `
+    <div style="
+      height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      flex-direction:column;
+      font-family:sans-serif;
+      background:white;
+    ">
+      <div class="spinner-border text-danger"></div>
+      <h3 style="margin-top:20px;">Submitting Exam...</h3>
+      <p>Please wait and do not refresh.</p>
+    </div>
+  `;
 
-    try {
+  try {
 
-      const response = await fetch('/student/submit_exam', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          answers: studentAnswers
-        })
-      });
+    const response = await fetch('/student/submit_exam', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        answers: studentAnswers,
+        auto_submit_reason: reason
+      })
+    });
 
-      const data = await response.json();
+    const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Submission failed');
-      }
-
-        window.location.replace('/student/thank-you');
-
-    } catch (err) {
-
-      console.error(err);
-
-      alert("Failed to submit exam: " + err.message);
-
-      location.reload();
+    if (!response.ok) {
+      throw new Error(data.error || 'Submission failed');
     }
-  }
 
+    window.location.replace('/student/thank-you');
+
+  } catch (err) {
+
+    console.error(err);
+
+    alert("Failed to submit exam: " + err.message);
+
+    location.reload();
+  }
+}
   // ─────────────────────────────────────
   // EXAM STATUS
   // ─────────────────────────────────────
@@ -1429,7 +1428,8 @@
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          answers: studentAnswers
+          answers: studentAnswers,
+          auto_submit_reason: "Alt tabbed while examining"
         }),
         keepalive: true
       });

@@ -567,6 +567,7 @@ def submit_exam():
         })
 
     data = request.get_json() or {}
+    auto_submit_reason = data.get("auto_submit_reason")
     submitted_answers = data.get("answers") or {}
     if not submitted_answers:
         return jsonify({"error": "No answers submitted"}), 400
@@ -582,6 +583,7 @@ def submit_exam():
         correct_answers=0,
         total_questions=0,
         status="completed",
+        remarks=auto_submit_reason if auto_submit_reason else "Completed normally"
     )
 
     db.session.add(exam_result)
@@ -639,6 +641,7 @@ def submit_exam():
     student.status = "completed"
     student.exam_date = datetime.utcnow().date()
 
+    student.status = "completed"
     db.session.commit()
 
     return jsonify({
