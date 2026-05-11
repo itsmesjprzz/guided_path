@@ -493,11 +493,6 @@ def student_register():
     db.session.add(enrollee)
     db.session.commit()
 
-    Thread(
-        target=send_reference_email_async,
-        args=(enrollee.name, enrollee.email, reference_code, expiration),
-        daemon=True
-    ).start()
 
     return jsonify({
         "success": True,
@@ -641,11 +636,6 @@ def submit_exam():
     student.exam_date = datetime.utcnow().date()
 
     db.session.commit()
-
-    try:
-        send_result_email(student, exam_result)
-    except Exception as exc:
-        print("Result email was not sent:", exc)
 
     return jsonify({
         "success": True,
