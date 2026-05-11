@@ -794,6 +794,18 @@ def import_questions():
     if not file.filename.lower().endswith(".csv"):
         flash("Only CSV files are accepted.", "danger")
         return redirect(url_for("admin_exam_set"))
+    
+    StudentAnswer.query.delete()
+    ExamResult.query.delete()
+    ExamQuestion.query.delete()
+
+    db.session.commit()
+
+    db.session.execute(
+        db.text("ALTER SEQUENCE exam_questions_id_seq RESTART WITH 1")
+    )
+
+    db.session.commit()
 
     rows = file.stream.read().decode("utf-8-sig", errors="ignore").splitlines()
     reader = csv.DictReader(rows)
@@ -832,18 +844,10 @@ def import_questions():
                 date_added=datetime.utcnow(),
             ))
             inserted += 1
-        except Exception as exc:
-            skipped += 1
-            print(f"Row {index} skipped: {exc}")
-    db.session.execute(
-    db.text("""
-        SELECT setval(
-            'exam_questions_id_seq',
-            COALESCE((SELECT MAX(id) FROM exam_questions), 1),
-            true
-        )
-    """)
-    )
+        except Exception as e:
+            print("IMPORT ERROR:", e)
+            print("FAILED QUESTION:", row)
+
 
     db.session.commit()
     flash(f"{inserted} question(s) imported. {skipped} row(s) skipped.", "success" if inserted else "warning")
