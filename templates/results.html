@@ -328,7 +328,7 @@
         <div class="row text-center">
           <div class="col-md-4">
             <h6 class="text-muted">Recommended Program</h6>
-            <h4 id="recommendedProgram">--</h4>
+            <h4 id="topRecommendations">--</h4>
           </div>
           <div class="col-md-4">
             <h6 class="text-muted">Program Match</h6>
@@ -587,8 +587,32 @@ function viewResult(resultId) {
   document.getElementById("totalQuestions").innerText = total;
   document.getElementById("percentageScore").innerText = `${percentage}%`;
 
-  document.getElementById("recommendedProgram").innerText = r.recommended_program || "No Program Match";
-  document.getElementById("programMatch").innerText = `${r.match_percentage || 0}%`;
+  const recommendations = r.top_recommendations || [];
+
+  document.getElementById("topRecommendations").innerHTML =
+  recommendations.length
+    ? recommendations.map((item, index) => `
+        <div class="mb-3">
+
+          <div class="d-flex justify-content-between">
+            <strong>
+              #${index + 1}
+              ${item.name}
+            </strong>
+
+            <span>${item.match}%</span>
+          </div>
+
+          <div class="progress">
+            <div
+              class="progress-bar bg-danger"
+              style="width:${item.match}%"
+            ></div>
+          </div>
+
+        </div>
+      `).join("")
+    : `<h5>No Recommendation Available</h5>`;
   document.getElementById("qualificationStatus").innerText = qualification;
 
   document.getElementById("performanceText").innerText =

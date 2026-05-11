@@ -120,6 +120,8 @@ class ExamResult(db.Model):
     status = db.Column(db.String(20), default="completed")
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+    top_recommendations = db.Column(db.Text)
+
     student = db.relationship("Enrollee", back_populates="exam_results")
 
     answers = db.relationship(

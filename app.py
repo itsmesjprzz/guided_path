@@ -12,6 +12,7 @@ import string
 import uuid
 import pandas as pd
 import traceback
+import json
 
 from models import db, Enrollee, ActivityLog, StudentAnswer, ExamQuestion, ExamResult
 
@@ -637,10 +638,13 @@ def submit_exam():
         subject_totals,
     )
 
+    top_recommendations = json.dumps(alternatives)
+
     exam_result.correct_answers = total_correct
     exam_result.total_questions = total_questions
     exam_result.recommended_program = recommendation["name"]
     exam_result.match_percentage = recommendation["match"]
+    exam_result.top_recommendations = top_recommendations
     exam_result.qualification_status = standing if hasattr(exam_result, "qualification_status") else None
 
     student.status = "completed"
@@ -746,6 +750,8 @@ def api_results():
             "total_questions": result.total_questions,
             "recommended_program": result.recommended_program,
             "match_percentage": result.match_percentage,
+            "top_recommendations": json.loads(result.top_recommendations)
+            if result.top_recommendations else [],
             "subject_scores": subject_scores,
             "subject_totals": subject_totals,
         })
