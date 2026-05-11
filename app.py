@@ -741,7 +741,7 @@ def api_results():
             "reference_code": student.reference_code,
             "registration_date": student.registration_date.isoformat() if student.registration_date else None,
             "date_taken": result.created_at.strftime("%Y-%m-%d %H:%M") if result.created_at else None,
-            "status": student.status,
+            "status": result.status,
             "score": result.correct_answers,
             "total_questions": result.total_questions,
             "recommended_program": result.recommended_program,

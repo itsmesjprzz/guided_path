@@ -127,6 +127,14 @@
       box-shadow: 0 4px 15px rgba(0,0,0,0.15);
     }
 
+    .status-terminated {
+      background-color: #dc3545;
+    }
+
+    .status-inactive {
+      background-color: #fd7e14;
+    }
+
     .auto-refresh-indicator {
       position: fixed;
       bottom: 20px;
@@ -479,9 +487,20 @@ function renderTable(results) {
 
   results.forEach((r, index) => {
     const status = r.status || "completed";
-    const statusClass = status === "completed" ? "status-completed" :
-                        status === "in_progress" ? "status-ongoing" :
-                        "status-not-started";
+    let statusClass = "status-not-started";
+
+if (status === "completed") {
+  statusClass = "status-completed";
+
+} else if (status === "in_progress") {
+  statusClass = "status-ongoing";
+
+} else if (status === "terminated") {
+  statusClass = "status-terminated";
+
+} else if (status === "inactive") {
+  statusClass = "status-inactive";
+}
 
     tbody.innerHTML += `
       <tr>
@@ -707,9 +726,23 @@ function getRemark(percent) {
 }
 
 function formatStatus(status) {
-  if (status === "in_progress") return "Ongoing";
-  if (status === "not_started") return "Not Started";
-  return "Completed";
+
+  if (status === "in_progress")
+    return "Ongoing";
+
+  if (status === "not_started")
+    return "Not Started";
+
+  if (status === "terminated")
+    return "Alt Tabbed While Examining";
+
+  if (status === "inactive")
+    return "Inactive During Examination";
+
+  if (status === "completed")
+    return "Completed Normally";
+
+  return status;
 }
 
 function backToList() {
