@@ -939,11 +939,35 @@ def delete_question_ajax(question_id):
 
 @app.route("/admin/delete_all_questions", methods=["POST"])
 def delete_all_questions():
-    count = ExamQuestion.query.delete()
-    db.session.commit()
 
-    log_activity(f"Deleted all exam questions ({count})", user="Administrator")
-    flash(f"{count} question(s) deleted.", "success")
+    try:
+
+        # Delete student answers first
+        StudentAnswer.query.delete()
+
+        # Delete exam results
+        ExamResult.query.delete()
+
+        # Delete questions
+        count = ExamQuestion.query.delete()
+
+        db.session.commit()
+
+        log_activity(
+            f"Deleted all exam questions ({count})",
+            user="Administrator"
+        )
+
+        flash(f"{count} question(s) deleted successfully.", "success")
+
+    except Exception as exc:
+
+        db.session.rollback()
+
+        print("DELETE ALL ERROR:", exc)
+
+        flash("Failed to delete questions.", "danger")
+
     return redirect(url_for("admin_exam_set"))
 
 
