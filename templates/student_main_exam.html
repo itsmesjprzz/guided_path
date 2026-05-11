@@ -846,337 +846,620 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    // ── Flask variables (keep as-is for production) ──
-    const examData    = {{ questions | tojson | safe }};
-    let timeRemaining = {{ duration if duration else 60 }} * 60;
+  // ─────────────────────────────────────
+  // FLASK VARIABLES
+  // ─────────────────────────────────────
+  const examData = {{ questions | tojson | safe }};
+  let timeRemaining = Number({{ duration|default(60)|tojson }}) * 60;
 
-    // ── State ──
-    const TOTAL_TIME       = timeRemaining;
-    const RING_CIRCUM      = 2 * Math.PI * 46; // r = 46
-    let answeredQuestions  = new Set();
-    let skippedQuestions   = new Set();
-    let viewedQuestions    = new Set();
-    let studentAnswers     = {};
-    let timerInterval;
+  // ─────────────────────────────────────
+  // STATE
+  // ─────────────────────────────────────
+  const TOTAL_TIME = timeRemaining;
+  const RING_CIRCUM = 2 * Math.PI * 46;
 
-    const MOTIVES = [
-      { upTo: 0,   emoji: '✨', text: 'Answer your first question and start building your score!' },
-      { upTo: 2,   emoji: '🚀', text: "Great start! Keep that momentum going." },
-      { upTo: 4,   emoji: '🔥', text: "You're on a roll — don't stop now!" },
-      { upTo: 6,   emoji: '⚡', text: "Past halfway! You're doing brilliantly." },
-      { upTo: 7,   emoji: '🏅', text: "Almost there — one final push!" },
-      { upTo: 9999,emoji: '🏆', text: "All questions answered! You're ready to shine." }
-    ];
+  let answeredQuestions = new Set();
+  let skippedQuestions = new Set();
+  let viewedQuestions = new Set();
+  let studentAnswers = {};
 
-    window.addEventListener('DOMContentLoaded', () => {
-      initializeExam();
-      checkExamStatus();
+  let timerInterval;
+  let isSubmitting = false;
+
+  // Anti-cheat
+  let tabSwitchTimeout;
+  let idleTimeout;
+  let isPageHidden = false;
+
+  const TAB_LIMIT_SECONDS = 15;
+  const IDLE_LIMIT_MINUTES = 5;
+
+  // ─────────────────────────────────────
+  // MOTIVATION
+  // ─────────────────────────────────────
+  const MOTIVES = [
+    { upTo: 0, emoji: '✨', text: 'Answer your first question and start building your score!' },
+    { upTo: 2, emoji: '🚀', text: "Great start! Keep that momentum going." },
+    { upTo: 4, emoji: '🔥', text: "You're on a roll — don't stop now!" },
+    { upTo: 6, emoji: '⚡', text: "Past halfway! You're doing brilliantly." },
+    { upTo: 7, emoji: '🏅', text: "Almost there — one final push!" },
+    { upTo: 9999, emoji: '🏆', text: "All questions answered! You're ready to shine." }
+  ];
+
+  // ─────────────────────────────────────
+  // INITIALIZE
+  // ─────────────────────────────────────
+  window.addEventListener('DOMContentLoaded', () => {
+    initializeExam();
+    checkExamStatus();
+    initializeIdleDetection();
+  });
+
+  function initializeExam() {
+    renderQuestions();
+    renderNavigation();
+    updateProgress();
+    startTimer();
+    initScrollObserver();
+  }
+
+  // ─────────────────────────────────────
+  // IDLE DETECTION
+  // ─────────────────────────────────────
+  function initializeIdleDetection() {
+
+    resetIdleTimer();
+
+    ['mousemove', 'keydown', 'click', 'scroll'].forEach(event => {
+      document.addEventListener(event, resetIdleTimer);
     });
+  }
 
-    function initializeExam() {
-      renderQuestions();
-      renderNavigation();
-      updateProgress();
-      startTimer();
-      initScrollObserver();
-    }
+  function resetIdleTimer() {
 
-    /* ── RENDER QUESTIONS ───────────────── */
-    function renderQuestions() {
-      const container = document.getElementById('questionsContainer');
-      const n = examData.length;
-      document.getElementById('modalTotalCount').textContent = n;
-      document.getElementById('mapLeft').textContent         = n;
+    clearTimeout(idleTimeout);
 
-      container.innerHTML = examData.map((q, index) => {
+    idleTimeout = setTimeout(() => {
 
-        /*
-         * ── IMAGE SUPPORT ────────────────────────────────────────────────
-         * Each question object can carry an optional `image_filename` field.
-         * When present, the image is rendered between the question text and
-         * the answer choices.
-         *
-         * To add an image to a question in Flask, make sure your query/model
-         * returns `image_filename` on the question object, e.g.:
-         *   { id: 3, question_text: "...", image_filename: "q3_diagram.png", ... }
-         *
-         * Images must be placed in:  static/question_images/<image_filename>
-         *
-         * The rendered <img> uses the `.question-image` CSS class which
-         * already handles sizing, rounded corners, and spacing.
-         * ────────────────────────────────────────────────────────────────
-         */
-        const imageBlock = q.image_filename
-          ? `<img
-               class="question-image"
-               src="/static/question_images/${q.image_filename}"
-               alt="Question ${index + 1} image"
-             />`
-          : '';
+      if (isSubmitting) return;
 
-        return `
-        <div class="question-card" id="question-${q.id}" style="animation-delay:${index * 0.05}s">
-          <div class="question-header">
-            <div class="q-num-wrap">
-              <div class="q-bubble" id="qbubble-${q.id}">${index + 1}</div>
-              <div>
-                <div class="q-meta-label">Question ${index + 1} <span style="font-weight:400;color:var(--ink-4)">of ${n}</span></div>
-                <div class="q-meta-sub">Multiple Choice</div>
+      alert(
+        `Exam automatically submitted because you were inactive for ${IDLE_LIMIT_MINUTES} minutes.`
+      );
+
+      submitExam();
+
+    }, IDLE_LIMIT_MINUTES * 60 * 1000);
+  }
+
+  // ─────────────────────────────────────
+  // RENDER QUESTIONS
+  // ─────────────────────────────────────
+  function renderQuestions() {
+
+    const container = document.getElementById('questionsContainer');
+    const n = examData.length;
+
+    document.getElementById('modalTotalCount').textContent = n;
+    document.getElementById('mapLeft').textContent = n;
+
+    container.innerHTML = examData.map((q, index) => {
+
+      const imageBlock = q.image_filename
+        ? `
+          <img
+            class="question-image"
+            src="/static/question_images/${q.image_filename}"
+            alt="Question ${index + 1} image"
+          />
+        `
+        : '';
+
+      return `
+      <div class="question-card" id="question-${q.id}" style="animation-delay:${index * 0.05}s">
+
+        <div class="question-header">
+
+          <div class="q-num-wrap">
+            <div class="q-bubble" id="qbubble-${q.id}">
+              ${index + 1}
+            </div>
+
+            <div>
+              <div class="q-meta-label">
+                Question ${index + 1}
+                <span style="font-weight:400;color:var(--ink-4)">
+                  of ${n}
+                </span>
+              </div>
+
+              <div class="q-meta-sub">
+                Multiple Choice
               </div>
             </div>
-            <span class="question-status unanswered" id="status-${q.id}">
-              <i class="fas fa-circle" style="font-size:7px"></i> Not answered
-            </span>
           </div>
 
-          <div class="question-body">
-            <div class="question-text">${q.question_text}</div>
+          <span class="question-status unanswered" id="status-${q.id}">
+            <i class="fas fa-circle" style="font-size:7px"></i>
+            Not answered
+          </span>
 
-            ${imageBlock}
+        </div>
 
-            <div class="options-list">
-              ${['choice_a','choice_b','choice_c','choice_d'].map(choiceKey => {
-                if (!q[choiceKey]) return '';
-                const label = choiceKey.split('_')[1].toUpperCase();
-                return `
-                  <label class="option-item" id="option-${label}-${q.id}">
-                    <input type="radio" name="question-${q.id}" value="${label}"
-                           onchange="saveAnswer(${q.id}, '${label}')">
-                    <div class="opt-key">${label}</div>
-                    <span class="option-text">${q[choiceKey]}</span>
-                    <span class="opt-check"><i class="fas fa-check-circle"></i></span>
-                  </label>`;
-              }).join('')}
-            </div>
+        <div class="question-body">
+
+          <div class="question-text">
+            ${q.question_text}
           </div>
-        </div>`;
-      }).join('');
-    }
 
-    /* ── RENDER NAVIGATION ──────────────── */
-    function renderNavigation() {
-      document.getElementById('questionNavGrid').innerHTML =
-        examData.map((q, i) =>
-          `<button class="nav-btn" id="nav-${q.id}" onclick="scrollToQuestion(${q.id})" title="Question ${i+1}">${i+1}</button>`
-        ).join('');
-    }
+          ${imageBlock}
 
-    /* ── SAVE ANSWER ────────────────────── */
-    function saveAnswer(qid, optId) {
-      studentAnswers[qid] = optId;
-      document.querySelectorAll(`#question-${qid} .option-item`).forEach(el => el.classList.remove('selected'));
-      document.getElementById(`option-${optId}-${qid}`).classList.add('selected');
-      markAsAnswered(qid);
-      updateProgress();
-    }
+          <div class="options-list">
 
-    function markAsAnswered(qid) {
-      answeredQuestions.add(qid);
-      skippedQuestions.delete(qid);
+            ${['choice_a','choice_b','choice_c','choice_d'].map(choiceKey => {
 
-      const card   = document.getElementById(`question-${qid}`);
-      const status = document.getElementById(`status-${qid}`);
-      const nav    = document.getElementById(`nav-${qid}`);
+              if (!q[choiceKey]) return '';
 
-      card.classList.remove('skipped');
-      card.classList.add('answered');
-      status.className = 'question-status answered';
-      status.innerHTML = '<i class="fas fa-check" style="font-size:8px"></i> Answered';
-      nav.classList.remove('skipped', 'active');
-      nav.classList.add('answered');
-    }
+              const label = choiceKey.split('_')[1].toUpperCase();
 
-    /* ── SCROLL OBSERVER (skip detection) ─ */
-    function initScrollObserver() {
-      const observer = new IntersectionObserver(entries => {
-        entries.forEach(entry => {
-          const id = parseInt(entry.target.dataset.qid);
-          if (entry.isIntersecting) {
-            viewedQuestions.add(id);
-            // Highlight current in map
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            const nb = document.getElementById(`nav-${id}`);
-            if (nb && !nb.classList.contains('answered')) nb.classList.add('active');
-          } else if (viewedQuestions.has(id) && !answeredQuestions.has(id)) {
-            markAsSkipped(id);
+              return `
+                <label class="option-item" id="option-${label}-${q.id}">
+
+                  <input
+                    type="radio"
+                    name="question-${q.id}"
+                    value="${label}"
+                    onchange="saveAnswer(${q.id}, '${label}')"
+                  >
+
+                  <div class="opt-key">${label}</div>
+
+                  <span class="option-text">
+                    ${q[choiceKey]}
+                  </span>
+
+                  <span class="opt-check">
+                    <i class="fas fa-check-circle"></i>
+                  </span>
+
+                </label>
+              `;
+
+            }).join('')}
+
+          </div>
+
+        </div>
+      </div>
+      `;
+    }).join('');
+  }
+
+  // ─────────────────────────────────────
+  // NAVIGATION
+  // ─────────────────────────────────────
+  function renderNavigation() {
+
+    document.getElementById('questionNavGrid').innerHTML =
+      examData.map((q, i) => `
+        <button
+          class="nav-btn"
+          id="nav-${q.id}"
+          onclick="scrollToQuestion(${q.id})"
+          title="Question ${i + 1}"
+        >
+          ${i + 1}
+        </button>
+      `).join('');
+  }
+
+  // ─────────────────────────────────────
+  // SAVE ANSWERS
+  // ─────────────────────────────────────
+  function saveAnswer(qid, optId) {
+
+    studentAnswers[qid] = optId;
+
+    document.querySelectorAll(
+      `#question-${qid} .option-item`
+    ).forEach(el => el.classList.remove('selected'));
+
+    document.getElementById(
+      `option-${optId}-${qid}`
+    ).classList.add('selected');
+
+    markAsAnswered(qid);
+
+    updateProgress();
+  }
+
+  function markAsAnswered(qid) {
+
+    answeredQuestions.add(qid);
+    skippedQuestions.delete(qid);
+
+    const card = document.getElementById(`question-${qid}`);
+    const status = document.getElementById(`status-${qid}`);
+    const nav = document.getElementById(`nav-${qid}`);
+
+    card.classList.remove('skipped');
+    card.classList.add('answered');
+
+    status.className = 'question-status answered';
+    status.innerHTML =
+      '<i class="fas fa-check" style="font-size:8px"></i> Answered';
+
+    nav.classList.remove('skipped', 'active');
+    nav.classList.add('answered');
+  }
+
+  // ─────────────────────────────────────
+  // OBSERVER
+  // ─────────────────────────────────────
+  function initScrollObserver() {
+
+    const observer = new IntersectionObserver(entries => {
+
+      entries.forEach(entry => {
+
+        const id = parseInt(entry.target.dataset.qid);
+
+        if (entry.isIntersecting) {
+
+          viewedQuestions.add(id);
+
+          document.querySelectorAll('.nav-btn')
+            .forEach(b => b.classList.remove('active'));
+
+          const nb = document.getElementById(`nav-${id}`);
+
+          if (nb && !nb.classList.contains('answered')) {
+            nb.classList.add('active');
           }
-        });
-      }, { threshold: 0.2 });
 
-      examData.forEach(q => {
-        const el = document.getElementById(`question-${q.id}`);
-        if (el) { el.dataset.qid = q.id; observer.observe(el); }
+        } else if (
+          viewedQuestions.has(id) &&
+          !answeredQuestions.has(id)
+        ) {
+
+          markAsSkipped(id);
+        }
       });
-    }
 
-    function markAsSkipped(qid) {
-      if (answeredQuestions.has(qid)) return;
-      skippedQuestions.add(qid);
-      const card   = document.getElementById(`question-${qid}`);
-      const status = document.getElementById(`status-${qid}`);
-      const nav    = document.getElementById(`nav-${qid}`);
-      if (!card.classList.contains('answered')) {
-        card.classList.add('skipped');
-        status.className = 'question-status skipped-tag';
-        status.innerHTML = '<i class="fas fa-triangle-exclamation" style="font-size:8px"></i> Skipped';
-        nav.classList.remove('active');
-        nav.classList.add('skipped');
-      }
-      updateProgress();
-    }
+    }, { threshold: 0.2 });
 
-    /* ── PROGRESS ───────────────────────── */
-    function updateProgress() {
-      const ans   = answeredQuestions.size;
-      const skip  = skippedQuestions.size;
-      const total = examData.length;
+    examData.forEach(q => {
 
-      document.getElementById('modalAnsweredCount').textContent = ans;
-      document.getElementById('modalMissedCount').textContent   = total - ans;
+      const el = document.getElementById(`question-${q.id}`);
 
-      // Map counts
-      document.getElementById('mapDone').textContent    = ans;
-      document.getElementById('mapSkipped').textContent = skip;
-      document.getElementById('mapLeft').textContent    = Math.max(0, total - ans - skip);
-
-      // Motivation
-      const m = MOTIVES.find(x => ans <= x.upTo) || MOTIVES[MOTIVES.length - 1];
-      const motiveEmoji = document.getElementById('motiveEmoji');
-      const motiveText = document.getElementById('motiveText');
-      const motiveScore = document.getElementById('motiveScore');
-
-      if (motiveEmoji) motiveEmoji.textContent = m.emoji;
-      if (motiveText) motiveText.textContent = m.text;
-      if (motiveScore && ans > 0) {
-       motiveScore.textContent = `${ans} / ${total} complete`;
-    }
-      
-    }
-
-    /* ── SCROLL TO ──────────────────────── */
-    function scrollToQuestion(qid) {
-      const el = document.getElementById(`question-${qid}`);
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      el.style.outline = '2px solid var(--r-500)';
-      el.style.outlineOffset = '3px';
-      setTimeout(() => { el.style.outline = ''; el.style.outlineOffset = ''; }, 1400);
-      document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-      document.getElementById(`nav-${qid}`).classList.add('active');
-    }
-
-    /* ── TIMER ──────────────────────────── */
-    function startTimer() {
-      updateTimerDisplay();
-      timerInterval = setInterval(() => {
-        timeRemaining--;
-        updateTimerDisplay();
-        if (timeRemaining === 300) alert('⏰ Only 5 minutes remaining! Start wrapping up.');
-        if (timeRemaining <= 0)   { clearInterval(timerInterval); submitExam(); }
-      }, 1000);
-    }
-
-    function updateTimerDisplay() {
-      const m      = Math.floor(timeRemaining / 60);
-      const s      = timeRemaining % 60;
-      const ratio  = timeRemaining / TOTAL_TIME;
-      const offset = RING_CIRCUM * (1 - ratio);
-
-      document.getElementById('timerDisplay').textContent =
-        `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-
-      const ring = document.getElementById('timerRing');
-      ring.style.strokeDasharray  = RING_CIRCUM;
-      ring.style.strokeDashoffset = offset;
-
-      const dig = document.getElementById('timerDisplay');
-      const msg = document.getElementById('timerMsg');
-
-      if (timeRemaining <= 60) {
-        dig.className  = 'timer-value crit';
-        msg.className  = 'timer-message crit';
-        msg.textContent = 'Final minute — submit now!';
-        ring.style.stroke = 'var(--r-500)';
-      } else if (timeRemaining <= 300) {
-        dig.className  = 'timer-value warn';
-        msg.className  = 'timer-message warn';
-        msg.textContent = 'Under 5 minutes — wrap up!';
-        ring.style.stroke = 'var(--r-400)';
-      } else if (timeRemaining <= TOTAL_TIME / 2) {
-        msg.textContent = "Halfway through time — keep going!";
-      }
-    }
-
-    /* ── REVIEW ─────────────────────────── */
-    function reviewAnswers() {
-      const unanswered = examData.filter(q => !answeredQuestions.has(q.id));
-      if (unanswered.length) {
-        alert(`📋 You have ${unanswered.length} unanswered question(s). Jumping to the first one!`);
-        scrollToQuestion(unanswered[0].id);
-      } else {
-        alert('🎉 All questions answered! You\'re ready to submit.');
-      }
-    }
-
-    /* ── SUBMIT ─────────────────────────── */
-    function showSubmitModal() {
-      new bootstrap.Modal(document.getElementById('submitModal')).show();
-    }
-
-  function submitExam() {
-  clearInterval(timerInterval);
-
-  fetch('/student/submit_exam', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ answers: studentAnswers })
-  })
-  .then(async res => {
-    const data = await res.json();
-    if (!res.ok) {
-      throw new Error(data.error || 'Failed to submit exam');
-    }
-    return data;
-  })
-  .then(data => {
-    window.location.href = `/student/result?result_id=${data.exam_result_id}`;
-  })
-  .catch(err => {
-    console.error(err);
-    alert("Failed to submit exam: " + err.message);
-  });
-}
-
-    /* ── EXAM STATUS CHECK ──────────────── */
-    function checkExamStatus() {
-      const status  = "{{ student.status }}";
-      const examBtn = document.getElementById("mainExamBtn");
-      if (examBtn && status === "completed") {
-        examBtn.disabled = true;
-        examBtn.innerText = "Already Completed";
-        examBtn.classList.add("btn-disabled");
-      }
-    }
-
-    /* ── GUARDS ─────────────────────────── */
-    window.addEventListener('beforeunload', function(e) {
-      if (timeRemaining > 0) {
-        e.preventDefault();
-        e.returnValue = '⚠ You have an exam in progress! Are you sure you want to leave?';
+      if (el) {
+        el.dataset.qid = q.id;
+        observer.observe(el);
       }
     });
+  }
+
+  function markAsSkipped(qid) {
+
+    if (answeredQuestions.has(qid)) return;
+
+    skippedQuestions.add(qid);
+
+    const card = document.getElementById(`question-${qid}`);
+    const status = document.getElementById(`status-${qid}`);
+    const nav = document.getElementById(`nav-${qid}`);
+
+    if (!card.classList.contains('answered')) {
+
+      card.classList.add('skipped');
+
+      status.className = 'question-status skipped-tag';
+
+      status.innerHTML =
+        '<i class="fas fa-triangle-exclamation" style="font-size:8px"></i> Skipped';
+
+      nav.classList.remove('active');
+      nav.classList.add('skipped');
+    }
+
+    updateProgress();
+  }
+
+  // ─────────────────────────────────────
+  // PROGRESS
+  // ─────────────────────────────────────
+  function updateProgress() {
+
+    const ans = answeredQuestions.size;
+    const skip = skippedQuestions.size;
+    const total = examData.length;
+
+    document.getElementById('modalAnsweredCount').textContent = ans;
+    document.getElementById('modalMissedCount').textContent = total - ans;
+
+    document.getElementById('mapDone').textContent = ans;
+    document.getElementById('mapSkipped').textContent = skip;
+    document.getElementById('mapLeft').textContent =
+      Math.max(0, total - ans - skip);
+
+    const m =
+      MOTIVES.find(x => ans <= x.upTo) ||
+      MOTIVES[MOTIVES.length - 1];
+
+    const motiveEmoji = document.getElementById('motiveEmoji');
+    const motiveText = document.getElementById('motiveText');
+    const motiveScore = document.getElementById('motiveScore');
+
+    if (motiveEmoji) motiveEmoji.textContent = m.emoji;
+    if (motiveText) motiveText.textContent = m.text;
+
+    if (motiveScore && ans > 0) {
+      motiveScore.textContent = `${ans} / ${total} complete`;
+    }
+  }
+
+  // ─────────────────────────────────────
+  // SCROLL
+  // ─────────────────────────────────────
+  function scrollToQuestion(qid) {
+
+    const el = document.getElementById(`question-${qid}`);
+
+    el.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center'
+    });
+
+    el.style.outline = '2px solid var(--r-500)';
+    el.style.outlineOffset = '3px';
+
+    setTimeout(() => {
+      el.style.outline = '';
+      el.style.outlineOffset = '';
+    }, 1400);
+
+    document.querySelectorAll('.nav-btn')
+      .forEach(btn => btn.classList.remove('active'));
+
+    document.getElementById(`nav-${qid}`)
+      .classList.add('active');
+  }
+
+  // ─────────────────────────────────────
+  // TIMER
+  // ─────────────────────────────────────
+  function startTimer() {
+
+    updateTimerDisplay();
+
+    timerInterval = setInterval(() => {
+
+      timeRemaining--;
+
+      updateTimerDisplay();
+
+      if (timeRemaining === 300) {
+        alert('⏰ Only 5 minutes remaining!');
+      }
+
+      if (timeRemaining <= 0) {
+
+        clearInterval(timerInterval);
+
+        submitExam();
+      }
+
+    }, 1000);
+  }
+
+  function updateTimerDisplay() {
+
+    const m = Math.floor(timeRemaining / 60);
+    const s = timeRemaining % 60;
+
+    const ratio = timeRemaining / TOTAL_TIME;
+    const offset = RING_CIRCUM * (1 - ratio);
+
+    document.getElementById('timerDisplay').textContent =
+      `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+
+    const ring = document.getElementById('timerRing');
+
+    ring.style.strokeDasharray = RING_CIRCUM;
+    ring.style.strokeDashoffset = offset;
+
+    const dig = document.getElementById('timerDisplay');
+    const msg = document.getElementById('timerMsg');
+
+    if (timeRemaining <= 60) {
+
+      dig.className = 'timer-value crit';
+      msg.className = 'timer-message crit';
+
+      msg.textContent = 'Final minute — submit now!';
+
+      ring.style.stroke = 'var(--r-500)';
+
+    } else if (timeRemaining <= 300) {
+
+      dig.className = 'timer-value warn';
+      msg.className = 'timer-message warn';
+
+      msg.textContent = 'Under 5 minutes — wrap up!';
+
+      ring.style.stroke = 'var(--r-400)';
+
+    } else if (timeRemaining <= TOTAL_TIME / 2) {
+
+      msg.textContent = "Halfway through time — keep going!";
+    }
+  }
+
+  // ─────────────────────────────────────
+  // REVIEW
+  // ─────────────────────────────────────
+  function reviewAnswers() {
+
+    const unanswered =
+      examData.filter(q => !answeredQuestions.has(q.id));
+
+    if (unanswered.length) {
+
+      alert(
+        `📋 You have ${unanswered.length} unanswered question(s).`
+      );
+
+      scrollToQuestion(unanswered[0].id);
+
+    } else {
+
+      alert('🎉 All questions answered!');
+    }
+  }
+
+  // ─────────────────────────────────────
+  // SUBMIT
+  // ─────────────────────────────────────
+  function showSubmitModal() {
+    new bootstrap.Modal(
+      document.getElementById('submitModal')
+    ).show();
+  }
+
+  async function submitExam() {
+
+    if (isSubmitting) return;
+
+    isSubmitting = true;
+
+    clearInterval(timerInterval);
+    clearTimeout(idleTimeout);
+    clearTimeout(tabSwitchTimeout);
+
+    document.body.innerHTML = `
+      <div style="
+        height:100vh;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        flex-direction:column;
+        font-family:sans-serif;
+        background:white;
+      ">
+        <div class="spinner-border text-danger"></div>
+        <h3 style="margin-top:20px;">Submitting Exam...</h3>
+        <p>Please wait and do not refresh.</p>
+      </div>
+    `;
+
+    try {
+
+      const response = await fetch('/student/submit_exam', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          answers: studentAnswers
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Submission failed');
+      }
+
+      window.location.href =
+        `/student/result?result_id=${data.exam_result_id}`;
+
+    } catch (err) {
+
+      console.error(err);
+
+      alert("Failed to submit exam: " + err.message);
+
+      location.reload();
+    }
+  }
+
+  // ─────────────────────────────────────
+  // EXAM STATUS
+  // ─────────────────────────────────────
+  function checkExamStatus() {
+
+    const status = "{{ student.status }}";
+    const examBtn = document.getElementById("mainExamBtn");
+
+    if (examBtn && status === "completed") {
+
+      examBtn.disabled = true;
+      examBtn.innerText = "Already Completed";
+      examBtn.classList.add("btn-disabled");
+    }
+  }
+
+  // ─────────────────────────────────────
+  // GUARDS
+  // ─────────────────────────────────────
+  window.addEventListener('beforeunload', function(e) {
+
+    if (timeRemaining > 0 && !isSubmitting) {
+
+      e.preventDefault();
+
+      e.returnValue =
+        '⚠ You have an exam in progress!';
+    }
+  });
+
+  window.history.pushState(null, '', window.location.href);
+
+  window.onpopstate = function() {
 
     window.history.pushState(null, '', window.location.href);
-    window.onpopstate = function() {
-      window.history.pushState(null, '', window.location.href);
-      alert('⚠ You cannot go back while taking the exam!');
-    };
 
-    document.addEventListener('visibilitychange', function() {
-      if (document.hidden && timeRemaining > 0) {
-        alert('⚠ You switched tabs while taking the exam. Stay focused!');
-      }
-    });
-  </script>
+    alert('⚠ You cannot go back while taking the exam!');
+  };
+
+  // ─────────────────────────────────────
+  // ALT TAB DETECTION
+  // ─────────────────────────────────────
+  document.addEventListener('visibilitychange', function () {
+
+    if (timeRemaining <= 0 || isSubmitting) return;
+
+    if (document.hidden) {
+
+      isPageHidden = true;
+
+      alert(
+        `Warning: Do not switch tabs.\n\n` +
+        `If you stay outside the exam for more than ${TAB_LIMIT_SECONDS} seconds, the exam will automatically submit.`
+      );
+
+      tabSwitchTimeout = setTimeout(() => {
+
+        if (isPageHidden) {
+
+          alert(
+            'Exam automatically submitted because you left the exam tab too long.'
+          );
+
+          submitExam();
+        }
+
+      }, TAB_LIMIT_SECONDS * 1000);
+
+    } else {
+
+      isPageHidden = false;
+
+      clearTimeout(tabSwitchTimeout);
+    }
+  });
+
+</script>
 
 </body>
 </html>
