@@ -107,8 +107,6 @@ class ExamResult(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
 
-    remarks = db.Column(db.String(255))
-
     student_id = db.Column(db.Integer, db.ForeignKey("enrollees.id"), nullable=False)
     exam_type = db.Column(db.String(50), default="main", nullable=False)
 
