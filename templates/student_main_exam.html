@@ -1041,9 +1041,16 @@
 
       // Motivation
       const m = MOTIVES.find(x => ans <= x.upTo) || MOTIVES[MOTIVES.length - 1];
-      document.getElementById('motiveEmoji').textContent = m.emoji;
-      document.getElementById('motiveText').textContent  = m.text;
-      if (ans > 0) document.getElementById('motiveScore').textContent = `${ans} / ${total} complete`;
+      const motiveEmoji = document.getElementById('motiveEmoji');
+      const motiveText = document.getElementById('motiveText');
+      const motiveScore = document.getElementById('motiveScore');
+
+      if (motiveEmoji) motiveEmoji.textContent = m.emoji;
+      if (motiveText) motiveText.textContent = m.text;
+      if (motiveScore && ans > 0) {
+       motiveScore.textContent = `${ans} / ${total} complete`;
+    }
+      
     }
 
     /* ── SCROLL TO ──────────────────────── */
