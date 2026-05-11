@@ -511,19 +511,8 @@ def student_exam():
         return "Student not found", 404
 
     if student.status == "completed":
-        latest_result = ExamResult.query.filter_by(student_id=student.id, exam_type="main").order_by(ExamResult.created_at.desc()).first()
-        if latest_result:
-            return redirect(url_for("student_result", result_id=latest_result.id))
-
-    questions = ExamQuestion.query.all()
-    random.shuffle(questions)
-
-    return render_template(
-        "student_main_exam.html",
-        questions=[q.to_dict() for q in questions],
-        duration=60,
-        student=student,
-    )
+     return redirect(url_for("student_thank_you"))
+    
 
 
 @app.route("/api/enrollee/start_exam/<int:enrollee_id>", methods=["POST"])
@@ -1071,6 +1060,13 @@ def import_enrollees():
             "traceback": traceback.format_exc(),
         }), 500
 
+
+@app.route("/student/thank-you")
+def student_thank_you():
+
+    session.pop("student_id", None)
+
+    return render_template("student_thank_you.html")
 
 if __name__ == "__main__":
     with app.app_context():
