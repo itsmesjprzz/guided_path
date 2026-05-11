@@ -555,8 +555,7 @@ def submit_exam():
 
     existing_result = ExamResult.query.filter_by(
         student_id=student.id,
-        exam_type="main",
-        status="completed",
+         exam_type="main",
     ).first()
 
     if existing_result:
@@ -570,19 +569,26 @@ def submit_exam():
     auto_submit_reason = data.get("auto_submit_reason")
     submitted_answers = data.get("answers") or {}
     if not submitted_answers:
-        return jsonify({"error": "No answers submitted"}), 400
+        submitted_answers = {}
 
     subject_scores = {}
     subject_totals = get_subject_totals()
     total_correct = 0
     total_questions = 0
+    result_status = "completed"
+
+    if auto_submit_reason == "Alt tabbed while examining":
+    result_status = "terminated"
+
+    elif auto_submit_reason == "Inactive during examination":
+    result_status = "inactive"
 
     exam_result = ExamResult(
         student_id=student.id,
         exam_type="main",
         correct_answers=0,
         total_questions=0,
-        status="completed",
+        status=result_status,
     )
 
     db.session.add(exam_result)
