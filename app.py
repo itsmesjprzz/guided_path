@@ -173,11 +173,17 @@ def normalize_subject(value):
 
 
 def get_subject_totals():
-    totals = {}
-    for question in ExamQuestion.query.all():
-        subject = question.subject
-        totals[subject] = totals.get(subject, 0) + 1
-    return totals
+
+    rows = (
+        db.session.query(
+            ExamQuestion.subject,
+            func.count(ExamQuestion.id)
+        )
+        .group_by(ExamQuestion.subject)
+        .all()
+    )
+
+    return {subject: count for subject, count in rows}
 
 
 def get_result_breakdown(result_id):
@@ -582,8 +588,22 @@ def submit_exam():
     db.session.add(exam_result)
     db.session.flush()
 
+    question_ids = [
+    int(qid)
+    for qid in submitted_answers.keys()
+    if str(qid).isdigit()
+    ]
+
+    questions = ExamQuestion.query.filter(
+    ExamQuestion.id.in_(question_ids)
+    ).all()
+
+    question_map = {q.id: q for q in questions}
+
     for question_id, selected in submitted_answers.items():
-        question = ExamQuestion.query.get(int(question_id)) if str(question_id).isdigit() else None
+
+        question = question_map.get(int(question_id))
+
         if not question:
             continue
 
