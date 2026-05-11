@@ -942,14 +942,15 @@ def delete_all_questions():
 
     try:
 
-        # Delete student answers first
         StudentAnswer.query.delete()
 
-        # Delete exam results
         ExamResult.query.delete()
 
-        # Delete questions
         count = ExamQuestion.query.delete()
+
+        db.session.execute(
+            db.text("ALTER SEQUENCE exam_questions_id_seq RESTART WITH 1")
+        )
 
         db.session.commit()
 
@@ -958,7 +959,10 @@ def delete_all_questions():
             user="Administrator"
         )
 
-        flash(f"{count} question(s) deleted successfully.", "success")
+        flash(
+            f"{count} question(s) deleted successfully.",
+            "success"
+        )
 
     except Exception as exc:
 
