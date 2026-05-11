@@ -578,10 +578,10 @@ def submit_exam():
     result_status = "completed"
 
     if auto_submit_reason == "Alt tabbed while examining":
-    result_status = "terminated"
+        result_status = "terminated"
 
     elif auto_submit_reason == "Inactive during examination":
-    result_status = "inactive"
+        result_status = "inactive"
 
     exam_result = ExamResult(
         student_id=student.id,
