@@ -491,16 +491,37 @@ def student_register():
         registration_date=datetime.utcnow(),
     )
 
-    db.session.add(enrollee)
-    db.session.commit()
+    try:
+        db.session.add(enrollee)
+        db.session.commit()
 
+        Thread(
+            target=send_reference_email_async,
+            args=(
+                enrollee.name,
+                enrollee.email,
+                reference_code,
+                expiration
+            ),
+            daemon=True
+        ).start()
 
-    return jsonify({
-        "success": True,
-        "message": "Registration successful. Please check your email for the reference code.",
-        "reference_code": reference_code
-    })  
+        return jsonify({
+            "success": True,
+            "message": "Registration successful. Please check your email for the reference code.",
+            "reference_code": reference_code
+        })
 
+    except Exception as exc:
+        db.session.rollback()
+        print("REGISTRATION ERROR:", exc, flush=True)
+
+        return jsonify({
+            "success": False,
+            "message": "Registration failed. Please try again."
+        }), 500
+    
+    
 @app.route("/student/exam")
 def student_exam():
 
