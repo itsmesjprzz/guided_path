@@ -140,9 +140,13 @@ def generate_reference_code():
     return f"GRC-{year}-{suffix}"
 
 
-def log_activity(action, user="System"):
-    db.session.add(ActivityLog(action=action, user=user))
-    db.session.commit()
+def log_activity(action, user="Administrator"):
+    try:
+        db.session.add(ActivityLog(action=action, user=user))
+        db.session.commit()
+    except Exception as exc:
+        db.session.rollback()
+        print("ACTIVITY LOG ERROR:", exc, flush=True)
 
 
 def clean_subject_class(subject_name):
@@ -398,13 +402,23 @@ def login():
     if username == "admin" and password == "admin123":
         session["admin_id"] = 1
         session["fullname"] = "Administrator"
-        return redirect(url_for("dashboard"))
 
-    return render_template("login.html", error="Invalid Credentials")
+    log_activity(
+        "Logged in to the admin dashboard",
+        user=session.get("fullname", "Administrator")
+    )
+
+    return redirect(url_for("dashboard"))   
 
 
 @app.route("/logout")
 def logout():
+    if "admin_id" in session:
+        log_activity(
+            "Logged out from the system",
+            user=session.get("fullname", "Administrator")
+        )
+
     session.clear()
     return redirect(url_for("home"))
 
@@ -560,7 +574,12 @@ def start_exam_api(enrollee_id):
 
     if enrollee.status == "not_started":
         enrollee.status = "in_progress"
-        db.session.commit()
+    db.session.commit()
+
+    log_activity(
+        f"Started exam session for {enrollee.name} ({enrollee.reference_code})",
+        user="System"
+    )
 
     return jsonify({"success": True})
 
@@ -672,7 +691,21 @@ def submit_exam():
     student.exam_date = datetime.utcnow().date()
 
     db.session.commit()
-
+    if result_status == "completed":
+        log_activity(
+            f"Student completed exam: {student.name} ({student.reference_code})",
+            user="System"
+    )
+    elif result_status == "terminated":
+        log_activity(
+            f"Student exam terminated due to alt-tab violation: {student.name} ({student.reference_code})",
+            user="System"
+    )
+    elif result_status == "inactive":
+        log_activity(
+            f"Student exam flagged due to inactivity: {student.name} ({student.reference_code})",
+            user="System"
+    )   
     return jsonify({
         "success": True,
         "exam_result_id": exam_result.id,
@@ -869,6 +902,12 @@ def import_questions():
 
 
     db.session.commit()
+
+    log_activity(
+        f"Imported {inserted} exam question(s); skipped {skipped} row(s)",
+        user=session.get("fullname", "Administrator")
+)
+
     flash(f"{inserted} question(s) imported. {skipped} row(s) skipped.", "success" if inserted else "warning")
     return redirect(url_for("admin_exam_set"))
 
@@ -891,7 +930,10 @@ def add_main_exam_question():
         db.session.add(question)
         db.session.commit()
 
-        log_activity(f"Added exam question for {question.subject}", user="Administrator")
+        log_activity(
+            f"Added exam question for {question.subject}",
+            user=session.get("fullname", "Administrator")
+)
         return redirect(url_for("admin_exam_set"))
 
     return render_template("add_main_exam_question.html")
@@ -924,7 +966,10 @@ def api_update_question(question_id):
             setattr(question, field, value)
 
     db.session.commit()
-    log_activity(f"Edited exam question #{question_id}", user="Administrator")
+    log_activity(
+    f"Added exam question for {question.subject}",
+    user=session.get("fullname", "Administrator")
+)
 
     return jsonify({"success": True})
 
@@ -946,6 +991,12 @@ def update_question_from_modal(question_id):
             setattr(question, field, value)
 
     db.session.commit()
+
+    log_activity(
+    f"Updated exam question #{question_id}",
+    user=session.get("fullname", "Administrator")
+)
+
     return jsonify({"success": True})
 
 
@@ -955,7 +1006,10 @@ def delete_question(question_id):
     db.session.delete(question)
     db.session.commit()
 
-    log_activity(f"Deleted exam question #{question_id}", user="Administrator")
+    log_activity(
+    f"Added exam question for {question.subject}",
+    user=session.get("fullname", "Administrator")
+)
     return redirect(url_for("admin_exam_set"))
 
 
@@ -1056,7 +1110,10 @@ def add_enrollee():
     db.session.add(enrollee)
     db.session.commit()
 
-    log_activity(f"Added enrollee: {enrollee.name} ({enrollee.reference_code})", user="Administrator")
+    log_activity(
+    f"Added exam question for {question.subject}",
+    user=session.get("fullname", "Administrator")
+)
     return jsonify({"success": True, "reference_code": reference_code, "id": enrollee.id}), 201
 
 
@@ -1070,7 +1127,10 @@ def edit_enrollee(enrollee_id):
             setattr(enrollee, field, data[field])
 
     db.session.commit()
-    log_activity(f"Edited enrollee: {enrollee.name}", user="Administrator")
+    log_activity(
+    f"Added exam question for {question.subject}",
+    user=session.get("fullname", "Administrator")
+)
 
     return jsonify({"success": True, "enrollee": enrollee.to_dict()})
 
@@ -1081,7 +1141,10 @@ def delete_enrollee(enrollee_id):
     db.session.delete(enrollee)
     db.session.commit()
 
-    log_activity(f"Deleted enrollee: {enrollee.name}", user="Administrator")
+    log_activity(
+        f"Added exam question for {question.subject}",
+        user=session.get("fullname", "Administrator")
+)
     return jsonify({"success": True})
 
 
@@ -1139,6 +1202,11 @@ def import_enrollees():
         db.session.bulk_save_objects(entries)
         db.session.commit()
 
+        log_activity(
+            f"Imported {len(entries)} enrollee(s)",
+            user=session.get("fullname", "Administrator")
+)
+
         return jsonify({"success": True, "message": f"{len(entries)} enrollees imported successfully."})
 
     except Exception as exc:
@@ -1156,6 +1224,48 @@ def student_thank_you():
     session.pop("student_id", None)
 
     return render_template("student_thank_you.html")
+
+@app.route("/api/activity_logs")
+def api_activity_logs():
+    if "admin_id" not in session:
+        return jsonify({
+            "success": False,
+            "message": "Unauthorized"
+        }), 401
+
+    start = request.args.get("start")
+    end = request.args.get("end")
+
+    query = ActivityLog.query
+
+    if start:
+        try:
+            start_date = datetime.strptime(start, "%Y-%m-%d")
+            query = query.filter(ActivityLog.created_at >= start_date)
+        except ValueError:
+            pass
+
+    if end:
+        try:
+            end_date = datetime.strptime(end, "%Y-%m-%d") + timedelta(days=1)
+            query = query.filter(ActivityLog.created_at < end_date)
+        except ValueError:
+            pass
+
+    logs = query.order_by(ActivityLog.created_at.desc()).limit(100).all()
+
+    return jsonify({
+        "success": True,
+        "logs": [
+            {
+                "id": log.id,
+                "user": log.user,
+                "action": log.action,
+                "timestamp": log.created_at.isoformat()
+            }
+            for log in logs
+        ]
+    })
 
 if __name__ == "__main__":
     with app.app_context():
