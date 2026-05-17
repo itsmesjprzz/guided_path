@@ -490,6 +490,26 @@ def student_register():
             "message": f"Missing required fields: {', '.join(missing)}",
         }), 400
 
+    full_name = data["full_name"].strip()
+    email = data["email"].strip().lower()
+    contact_number = data["contact_number"].strip()
+
+    if not contact_number.isdigit() or len(contact_number) != 11:
+        return jsonify({
+            "success": False,
+            "message": "Contact number must contain exactly 11 digits."
+        }), 400
+
+    existing_email = Enrollee.query.filter(
+        func.lower(Enrollee.email) == email
+    ).first()
+
+    if existing_email:
+        return jsonify({
+            "success": False,
+            "message": "This email address is already registered."
+        }), 400
+
     reference_code = generate_reference_code()
     while Enrollee.query.filter_by(reference_code=reference_code).first():
         reference_code = generate_reference_code()
@@ -497,9 +517,9 @@ def student_register():
     expiration = datetime.now(timezone.utc) + timedelta(hours=24)
 
     enrollee = Enrollee(
-        name=data["full_name"].strip(),
-        email=data["email"].strip(),
-        contact_number=data["contact_number"].strip(),
+        name=full_name,
+        email=email,
+        contact_number=contact_number,
         school_strand=(data.get("school_strand") or "").strip(),
         reference_code=reference_code,
         reference_expiration=expiration,
