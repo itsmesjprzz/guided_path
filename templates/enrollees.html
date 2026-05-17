@@ -10,10 +10,12 @@
     body { background-color: #f8f9fa; }
     .navbar-custom { background-color: #ff0000 !important; gap: 10px; }
     .navbar-custom .nav-link, .navbar-custom .navbar-brand { color: #fff !important; }
-    .status-badge { padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 500; }
-    .status-not-started { background-color: #e5e7eb; color: #374151; }
-    .status-in-progress { background-color: #fef3c7; color: #92400e; }
-    .status-completed { background-color: #d1fae5; color: #065f46; }
+    .status-badge { padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 700; display: inline-block; text-transform: capitalize; }
+    .status-not-started { background-color: #e5e7eb; color: #374151; border: 1px solid #d1d5db; }
+    .status-in-progress { background-color: #dbeafe; color: #1d4ed8; border: 1px solid #bfdbfe; }
+    .status-completed { background-color: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+    .status-terminated { background-color: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+    .status-inactive { background-color: #ffedd5; color: #9a3412; border: 1px solid #fed7aa; }
     .score-badge { font-weight: bold; padding: 4px 8px; border-radius: 4px; }
     .score-excellent { background-color: #d1fae5; color: #065f46; }
     .score-good { background-color: #bfdbfe; color: #1e40af; }
@@ -66,9 +68,10 @@
     </div>
 
     <div class="row g-3 mb-4 text-center">
-        <div class="col-md-4"><div class="card shadow-sm"><div class="card-body"><h6 class="text-muted">Not Started</h6><h3 id="notStartedCount">0</h3></div></div></div>
-        <div class="col-md-4"><div class="card shadow-sm"><div class="card-body"><h6 class="text-muted">In Progress</h6><h3 id="inProgressCount">0</h3></div></div></div>
-        <div class="col-md-4"><div class="card shadow-sm"><div class="card-body"><h6 class="text-muted">Completed</h6><h3 id="completedCount">0</h3></div></div></div>
+        <div class="col-md-3"><div class="card shadow-sm border-secondary"><div class="card-body"><h6 class="text-muted">Not Started</h6><h3 class="text-secondary" id="notStartedCount">0</h3></div></div></div>
+        <div class="col-md-3"><div class="card shadow-sm border-primary"><div class="card-body"><h6 class="text-muted">Ongoing</h6><h3 class="text-primary" id="inProgressCount">0</h3></div></div></div>
+        <div class="col-md-3"><div class="card shadow-sm border-danger"><div class="card-body"><h6 class="text-muted">Terminated</h6><h3 class="text-danger" id="terminatedCount">0</h3></div></div></div>
+        <div class="col-md-3"><div class="card shadow-sm border-success"><div class="card-body"><h6 class="text-muted">Completed</h6><h3 class="text-success" id="completedCount">0</h3></div></div></div>
     </div>
 
     <div class="card shadow-sm mb-4">
@@ -85,10 +88,11 @@
                 <div class="d-flex gap-2">
                     <!-- Filter Buttons -->
                     <div class="filter-buttons btn-group" role="group">
-                        <button class="btn btn-outline-secondary btn-sm active" onclick="setFilter('all', this)">All</button>
-                        <button class="btn btn-outline-secondary btn-sm" onclick="setFilter('not_started', this)">Not Started</button>
-                        <button class="btn btn-outline-info btn-sm" onclick="setFilter('in_progress', this)">In progress</button>
-                        <button class="btn btn-outline-success btn-sm" onclick="setFilter('completed', this)">Completed</button>
+                        <button class="btn btn-outline-secondary btn-sm active" data-filter="all" onclick="setFilter('all', this)">All</button>
+                        <button class="btn btn-outline-secondary btn-sm" data-filter="not_started" onclick="setFilter('not_started', this)">Not Started</button>
+                        <button class="btn btn-outline-primary btn-sm" data-filter="in_progress" onclick="setFilter('in_progress', this)">Ongoing</button>
+                        <button class="btn btn-outline-danger btn-sm" data-filter="terminated" onclick="setFilter('terminated', this)">Terminated</button>
+                        <button class="btn btn-outline-success btn-sm" data-filter="completed" onclick="setFilter('completed', this)">Completed</button>
                     </div>
                     <!-- Sort Dropdown -->
                     <select class="form-select form-select-sm" id="sortBy" style="width: auto;">
@@ -166,7 +170,9 @@
             <label class="form-label">Status</label>
             <select name="status" class="form-select">
               <option value="not_started">Not Started</option>
-              <option value="in_progress">In Progress</option>
+              <option value="in_progress">Ongoing</option>
+              <option value="terminated">Terminated</option>
+              <option value="inactive">Inactive</option>
               <option value="completed">Completed</option>
             </select>
           </div>
@@ -344,6 +350,8 @@ function applyFilters() {
       currentFilter === 'all' ||
       (currentFilter === 'not_started' && e.status === 'not_started') ||
       (currentFilter === 'in_progress' && e.status === 'in_progress') ||
+      (currentFilter === 'terminated' && e.status === 'terminated') ||
+      (currentFilter === 'inactive' && e.status === 'inactive') ||
       (currentFilter === 'completed' && e.status === 'completed');
 
     return matchSearch && matchFilter;
@@ -412,10 +420,20 @@ function getStatusBadge(status) {
   const classes = {
     'not_started': 'status-not-started',
     'in_progress': 'status-in-progress',
+    'terminated': 'status-terminated',
+    'inactive': 'status-inactive',
     'completed': 'status-completed'
   };
-  const label = (status || '').replace('_', ' ');
-  return `<span class="status-badge ${classes[status] || 'status-not-started'}">${label}</span>`;
+
+  const labels = {
+    'not_started': 'Not Started',
+    'in_progress': 'Ongoing',
+    'terminated': 'Terminated',
+    'inactive': 'Inactive',
+    'completed': 'Completed'
+  };
+
+  return `<span class="status-badge ${classes[status] || 'status-not-started'}">${labels[status] || 'Not Started'}</span>`;
 }
 
 function getScoreBadge(score) {
@@ -436,10 +454,12 @@ function formatDate(date) {
 function updateStats() {
   const notStarted = enrolleesData.filter(e => e.status === 'not_started').length;
   const inProgress = enrolleesData.filter(e => e.status === 'in_progress').length;
+  const terminated = enrolleesData.filter(e => e.status === 'terminated').length;
   const completed = enrolleesData.filter(e => e.status === 'completed').length;
 
   document.getElementById('notStartedCount').textContent = notStarted;
   document.getElementById('inProgressCount').textContent = inProgress;
+  document.getElementById('terminatedCount').textContent = terminated;
   document.getElementById('completedCount').textContent = completed;
 }
 
@@ -687,9 +707,15 @@ function updateEnrolleeCounts() {
     .then(res => res.json())
     .then(data => {
       if (data.success) {
-        document.getElementById("notStartedCount").textContent = data.not_started_count;
-        document.getElementById("inProgressCount").textContent = data.in_progress_count;
-        document.getElementById("completedCount").textContent = data.completed_count;
+        const list = data.enrollees || [];
+        document.getElementById("notStartedCount").textContent =
+          data.not_started_count ?? list.filter(e => e.status === "not_started").length;
+        document.getElementById("inProgressCount").textContent =
+          data.in_progress_count ?? list.filter(e => e.status === "in_progress").length;
+        document.getElementById("terminatedCount").textContent =
+          data.terminated_count ?? list.filter(e => e.status === "terminated").length;
+        document.getElementById("completedCount").textContent =
+          data.completed_count ?? list.filter(e => e.status === "completed").length;
       }
     })
     .catch(console.error);
