@@ -71,6 +71,7 @@
     .stats-card.not-started { border-left-color: #6c757d; }
     .stats-card.ongoing { border-left-color: #0dcaf0; }
     .stats-card.completed { border-left-color: #28a745; }
+    .stats-card.flagged { border-left-color: #dc3545; }
 
     #resultsListView, #individualResultView { display: none; }
     #resultsListView.active, #individualResultView.active { display: block; }
@@ -228,7 +229,7 @@
     </div>
 
     <div class="row g-3 mb-4">
-      <div class="col-md-4">
+      <div class="col-md-3">
         <div class="card shadow-sm stats-card not-started">
           <div class="card-body text-center">
             <h6 class="text-muted">Not Started</h6>
@@ -238,7 +239,7 @@
         </div>
       </div>
 
-      <div class="col-md-4">
+      <div class="col-md-3">
         <div class="card shadow-sm stats-card ongoing">
           <div class="card-body text-center">
             <h6 class="text-muted">Ongoing</h6>
@@ -248,12 +249,22 @@
         </div>
       </div>
 
-      <div class="col-md-4">
+      <div class="col-md-3">
         <div class="card shadow-sm stats-card completed">
           <div class="card-body text-center">
             <h6 class="text-muted">Completed</h6>
             <h2 class="fw-bold text-success" id="completedCount">0</h2>
-            <small class="text-muted">Students who finished the exam</small>
+            <small class="text-muted">Students who finished normally</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="card shadow-sm stats-card flagged">
+          <div class="card-body text-center">
+            <h6 class="text-muted">Flagged</h6>
+            <h2 class="fw-bold text-danger" id="flaggedCount">0</h2>
+            <small class="text-muted">Terminated or inactive exam records</small>
           </div>
         </div>
       </div>
@@ -274,6 +285,7 @@
             <button class="btn btn-sm btn-outline-secondary" onclick="filterResults('not_started', this)">Not Started</button>
             <button class="btn btn-sm btn-outline-info" onclick="filterResults('in_progress', this)">Ongoing</button>
             <button class="btn btn-sm btn-outline-success" onclick="filterResults('completed', this)">Completed</button>
+            <button class="btn btn-sm btn-outline-danger" onclick="filterResults('flagged', this)">Flagged</button>
           </div>
         </div>
       </div>
@@ -596,10 +608,15 @@ function getExamStatusClass(status) {
   return "status-not-started";
 }
 
+function isFlaggedStatus(status) {
+  return status === "terminated" || status === "inactive";
+}
+
 function updateStats(results) {
   document.getElementById("completedCount").innerText = results.filter(r => r.status === "completed").length;
   document.getElementById("ongoingCount").innerText = results.filter(r => r.status === "in_progress").length;
   document.getElementById("notStartedCount").innerText = results.filter(r => r.status === "not_started").length;
+  document.getElementById("flaggedCount").innerText = results.filter(r => isFlaggedStatus(r.status)).length;
 }
 
 function filterResults(status, button) {
@@ -613,7 +630,10 @@ function applySearchAndFilter() {
   const keyword = document.getElementById("searchInput").value.toLowerCase().trim();
 
   visibleResults = allResults.filter(r => {
-    const matchesFilter = activeFilter === "all" || r.status === activeFilter;
+    const matchesFilter =
+      activeFilter === "all" ||
+      r.status === activeFilter ||
+      (activeFilter === "flagged" && isFlaggedStatus(r.status));
     const matchesSearch =
       (r.name || "").toLowerCase().includes(keyword) ||
       (r.reference_code || "").toLowerCase().includes(keyword) ||
