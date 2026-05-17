@@ -536,7 +536,7 @@ def student_exam():
         return "Student not found", 404
 
     # If exam already completed
-    if student.status == "completed":
+    if student.status in ["completed", "inactive", "terminated"]:
         return redirect(url_for("student_thank_you"))
 
     questions = ExamQuestion.query.all()
@@ -668,10 +668,9 @@ def submit_exam():
     exam_result.top_recommendations = top_recommendations
     exam_result.qualification_status = standing if hasattr(exam_result, "qualification_status") else None
 
-    student.status = "completed"
+    student.status = result_status
     student.exam_date = datetime.utcnow().date()
 
-    student.status = "completed"
     db.session.commit()
 
     return jsonify({
@@ -679,6 +678,69 @@ def submit_exam():
         "exam_result_id": exam_result.id,
     })
 
+@app.route("/api/exam/flag-inactive", methods=["POST"])
+def flag_inactive_exam():
+    student_id = session.get("student_id")
+
+    if not student_id:
+        return jsonify({
+            "success": False,
+            "message": "Student is not logged in."
+        }), 401
+
+    student = Enrollee.query.get(student_id)
+
+    if not student:
+        return jsonify({
+            "success": False,
+            "message": "Student not found."
+        }), 404
+
+    # Prevent duplicate inactive/flagged result
+    existing_result = ExamResult.query.filter_by(
+        student_id=student.id,
+        exam_type="main"
+    ).first()
+
+    if existing_result:
+        existing_result.status = "inactive"
+        student.status = "inactive"
+        student.exam_date = datetime.utcnow().date()
+
+        db.session.commit()
+
+        session.pop("student_id", None)
+
+        return jsonify({
+            "success": True,
+            "message": "Existing exam result marked as inactive."
+        })
+
+    # Create a flagged result record
+    exam_result = ExamResult(
+        student_id=student.id,
+        exam_type="main",
+        correct_answers=0,
+        total_questions=0,
+        recommended_program="No Program Match",
+        match_percentage=0,
+        qualification_status="Not Yet Ready",
+        status="inactive",
+        top_recommendations=json.dumps([])
+    )
+
+    student.status = "inactive"
+    student.exam_date = datetime.utcnow().date()
+
+    db.session.add(exam_result)
+    db.session.commit()
+
+    session.pop("student_id", None)
+
+    return jsonify({
+        "success": True,
+        "message": "Exam flagged as inactive."
+    })
 
 @app.route("/student/result")
 def student_result():
@@ -1152,6 +1214,36 @@ def import_enrollees():
         }), 500
 
 
+@app.route('/api/exam/flag-inactive', methods=['POST'])
+def flag_inactive_exam():
+    if 'student_id' not in session:
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+
+    student_id = session['student_id']
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        UPDATE exam_results
+        SET status = %s,
+            flag_reason = %s,
+            date_taken = NOW()
+        WHERE student_id = %s
+        AND status = %s
+    """, ('inactive', 'Student was idle during the examination.', student_id, 'in_progress'))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    session.clear()
+
+    return jsonify({
+        'success': True,
+        'message': 'Exam flagged as inactive.'
+    })
+    
 @app.route("/student/thank-you")
 def student_thank_you():
 

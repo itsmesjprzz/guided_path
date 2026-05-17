@@ -867,8 +867,38 @@
   let isSubmitting = false;
 
   // Anti-cheat
-  let idleTimeout;
-  const IDLE_LIMIT_MINUTES = 5;
+   let idleTimeout;
+  const IDLE_LIMIT_SECONDS = 10; // 10 seconds for demo/defense
+
+  function initializeIdleDetection() {
+    resetIdleTimer();
+
+    [
+      "mousemove",
+      "mousedown",
+      "keydown",
+      "click",
+      "scroll",
+      "touchstart"
+    ].forEach(event => {
+      document.addEventListener(event, resetIdleTimer);
+    });
+  }
+
+  function resetIdleTimer() {
+    clearTimeout(idleTimeout);
+
+    idleTimeout = setTimeout(() => {
+      if (isSubmitting) return;
+
+      alert(
+        `Exam automatically submitted because you were inactive for ${IDLE_LIMIT_SECONDS} seconds.`
+      );
+
+      submitExam("Inactive during examination");
+
+    }, IDLE_LIMIT_SECONDS * 1000);
+  }
 
   // ─────────────────────────────────────
   // MOTIVATION
@@ -1242,7 +1272,7 @@
 
         clearInterval(timerInterval);
 
-        submitExam("Inactive during examination");
+        submitExam("Time expired");
       }
 
     }, 1000);
