@@ -403,12 +403,14 @@ def login():
         session["admin_id"] = 1
         session["fullname"] = "Administrator"
 
-    log_activity(
-        "Logged in to the admin dashboard",
-        user=session.get("fullname", "Administrator")
-    )
+        log_activity(
+            "Logged in to the admin dashboard",
+            user=session.get("fullname", "Administrator")
+        )
 
-    return redirect(url_for("dashboard"))   
+        return redirect(url_for("dashboard"))
+
+    return render_template("login.html", error="Invalid Credentials")
 
 
 @app.route("/logout")
@@ -574,12 +576,12 @@ def start_exam_api(enrollee_id):
 
     if enrollee.status == "not_started":
         enrollee.status = "in_progress"
-    db.session.commit()
+        db.session.commit()
 
-    log_activity(
-        f"Started exam session for {enrollee.name} ({enrollee.reference_code})",
-        user="System"
-    )
+        log_activity(
+            f"Started exam session for {enrollee.name} ({enrollee.reference_code})",
+            user="System"
+        )
 
     return jsonify({"success": True})
 
@@ -967,7 +969,7 @@ def api_update_question(question_id):
 
     db.session.commit()
     log_activity(
-    f"Added exam question for {question.subject}",
+    f"Edited exam question #{question_id} for {question.subject}",
     user=session.get("fullname", "Administrator")
 )
 
@@ -1003,23 +1005,34 @@ def update_question_from_modal(question_id):
 @app.route("/admin/exam-set/main/delete/<int:question_id>")
 def delete_question(question_id):
     question = ExamQuestion.query.get_or_404(question_id)
+
+    subject = question.subject
+
     db.session.delete(question)
     db.session.commit()
 
     log_activity(
-    f"Added exam question for {question.subject}",
-    user=session.get("fullname", "Administrator")
-)
+        f"Deleted exam question #{question_id} from {subject}",
+        user=session.get("fullname", "Administrator")
+    )
+
     return redirect(url_for("admin_exam_set"))
 
 
 @app.route("/admin/delete_question/<int:question_id>", methods=["POST"])
 def delete_question_ajax(question_id):
     question = ExamQuestion.query.get_or_404(question_id)
+
+    subject = question.subject
+
     db.session.delete(question)
     db.session.commit()
 
-    log_activity(f"Deleted exam question #{question_id}", user="Administrator")
+    log_activity(
+        f"Deleted exam question #{question_id} from {subject}",
+        user=session.get("fullname", "Administrator")
+    )
+
     return jsonify({"success": True})
 
 
@@ -1041,9 +1054,9 @@ def delete_all_questions():
         db.session.commit()
 
         log_activity(
-            f"Deleted all exam questions ({count})",
-            user="Administrator"
-        )
+    f"Deleted all exam questions ({count})",
+    user=session.get("fullname", "Administrator")
+)
 
         flash(
             f"{count} question(s) deleted successfully.",
@@ -1111,7 +1124,7 @@ def add_enrollee():
     db.session.commit()
 
     log_activity(
-    f"Added exam question for {question.subject}",
+    f"Added enrollee: {enrollee.name} ({enrollee.reference_code})",
     user=session.get("fullname", "Administrator")
 )
     return jsonify({"success": True, "reference_code": reference_code, "id": enrollee.id}), 201
@@ -1128,7 +1141,7 @@ def edit_enrollee(enrollee_id):
 
     db.session.commit()
     log_activity(
-    f"Added exam question for {question.subject}",
+    f"Updated enrollee: {enrollee.name} ({enrollee.reference_code})",
     user=session.get("fullname", "Administrator")
 )
 
@@ -1138,13 +1151,18 @@ def edit_enrollee(enrollee_id):
 @app.route("/api/enrollees/<int:enrollee_id>", methods=["DELETE"])
 def delete_enrollee(enrollee_id):
     enrollee = Enrollee.query.get_or_404(enrollee_id)
+
+    enrollee_name = enrollee.name
+    reference_code = enrollee.reference_code
+
     db.session.delete(enrollee)
     db.session.commit()
 
     log_activity(
-        f"Added exam question for {question.subject}",
+        f"Deleted enrollee: {enrollee_name} ({reference_code})",
         user=session.get("fullname", "Administrator")
-)
+    )
+
     return jsonify({"success": True})
 
 
