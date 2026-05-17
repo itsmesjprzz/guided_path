@@ -140,8 +140,18 @@
 
             <div class="mb-3">
               <label for="contactNumber" class="form-label">Contact Number</label>
-              <input type="tel" class="form-control" id="contactNumber" 
-                     placeholder="Enter your contact number" required>
+              <input
+  type="text"
+  class="form-control"
+  id="contactNumber"
+  placeholder="09XXXXXXXXX"
+  maxlength="11"
+  minlength="11"
+  pattern="[0-9]{11}"
+  inputmode="numeric"
+  required
+>
+<small class="text-muted">Contact number must contain exactly 11 digits.</small>
             </div>
 
             <div class="mb-3">
@@ -224,6 +234,11 @@
         loginBtn.innerHTML = '<i class="fas fa-sign-in-alt me-2"></i>Login';
       });
     });
+    const contactNumberInput = document.getElementById('contactNumber');
+
+contactNumberInput.addEventListener('input', function () {
+  this.value = this.value.replace(/\D/g, '').slice(0, 11);
+});
 
     // Self-Registration
     document.getElementById('registerForm').addEventListener('submit', function(e) {
@@ -235,6 +250,13 @@
       const schoolStrand = document.getElementById('schoolStrand').value.trim();
       const registerBtn = document.getElementById('registerBtn');
       const messageBox = document.getElementById('registerMessageBox');
+
+      if (!/^\d{11}$/.test(contactNumber)) {
+  messageBox.classList.remove('d-none', 'alert-success');
+  messageBox.classList.add('alert-danger');
+  messageBox.textContent = 'Contact number must contain exactly 11 digits.';
+  return;
+}
       
       // Disable button and show loading
       registerBtn.disabled = true;
