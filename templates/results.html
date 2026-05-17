@@ -29,15 +29,44 @@
       color: var(--text-dark);
     }
 
+    /* Same navbar style as Enrollees page */
     .navbar-custom {
-      background-color: var(--brand) !important;
+      background-color: #ff0000 !important;
+      gap: 10px;
       color: white;
     }
 
     .navbar-custom .nav-link,
     .navbar-custom .navbar-brand,
     .navbar-custom .dropdown-toggle {
-      color: white !important;
+      color: #fff !important;
+    }
+
+    .navbar-custom .nav-link:hover,
+    .navbar-custom .navbar-brand:hover {
+      color: #fff !important;
+      opacity: 0.9;
+    }
+
+    .btn-primary {
+      background-color: #ff0000 !important;
+      border-color: #ff0000 !important;
+      color: #fff !important;
+    }
+
+    .btn-primary:hover {
+      background-color: #cc0000 !important;
+      border-color: #cc0000 !important;
+    }
+
+    .btn-outline-primary {
+      color: #ff0000 !important;
+      border-color: #ff0000 !important;
+    }
+
+    .btn-outline-primary:hover {
+      background-color: #ff0000 !important;
+      color: #fff !important;
     }
 
     .status-badge {
@@ -197,7 +226,9 @@
 <body>
 <nav class="navbar navbar-expand-lg navbar-light navbar-custom">
   <div class="container-fluid">
-    <a class="navbar-brand ms-2" href="{{ url_for('dashboard') }}">Guided Path</a>
+    <a class="navbar-brand ms-2" href="{{ url_for('dashboard') }}">
+      Online Entrance Exam System
+    </a>
 
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav d-flex flex-row gap-5 mx-auto">
